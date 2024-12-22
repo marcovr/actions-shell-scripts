@@ -1,0 +1,16 @@
+{
+  "scopeName": "source.yaml.shell-injection",
+  "injectionSelector": "L:source.yaml",
+  "patterns": [
+    {
+      "name": "meta.embedded.shell",
+      "begin": "(?<=^.*(before_script|script|after_script):$)",
+      "end": "(?=^.*([a-zA-Z0-9_-]+:)+?$)",
+      "patterns": [
+        {
+          "include": "source.shell"
+        }
+      ]
+    }
+  ]
+}
