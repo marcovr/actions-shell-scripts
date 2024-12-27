@@ -1,71 +1,96 @@
-# yaml-with-script README
+# YAML with Script
 
-This is the README for your extension "yaml-with-script". After writing up a brief description, we recommend including the following sections.
+🚀 **Extend YAML files with embedded shell scripts and linting** – the perfect
+solution for seamless automation and debugging directly within VS Code!
 
-## Features
+### 💡 Primary Use Case: **GitLab CI/CD**
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+This extension is specifically designed for **GitLab CI/CD**, making it easier
+to work with `.gitlab-ci.yml` files. Automate, debug, and test your CI pipelines
+without the need for constant commits and pushes.
 
 ---
 
-## Following extension guidelines
+## Features
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+- **CodeLens Integration**: Add interactive buttons to YAML files to execute
+  shell scripts (`script`) with a single click.
+- **ShellCheck Support**: Integrated linting to detect and fix issues in your
+  shell scripts.
+- **Real-time YAML Analysis**: Provides instant feedback on YAML file syntax
+  errors and warnings directly in the VS Code Problems panel.
+- **Optimized for GitLab CI/CD**: Simplifies working with `.gitlab-ci.yml`,
+  including `script` blocks, `before_script`, and more.
+- **Customizable Settings**: Configure script dialects, severity levels, and
+  other options via the extension settings.
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+---
 
-## Working with Markdown
+## Example Usage
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+This extension takes always the last item from the script array which should be
+a yaml scalar (`- |`) to take the
+[reference tags from GitLab CI/CD](https://docs.gitlab.com/ee/ci/yaml/yaml_optimization.html#reference-tags)
+into consideration.
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+### YAML file with a script
 
-## For more information
+`after_script`, `script` and `before_script` are getting highlighted, checked
+with [shellcheck](https://github.com/koalaman/shellcheck) and are executable
+with a button click on `Run YAML with Script`.
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+![Preview](images/preview.png)
 
-**Enjoy!**
+### How to execute a script:
+
+1. Open a `.gitlab-ci.yml` file in VS Code.
+2. Click the **CodeLens button** (`▶️ Run YAML with Script`) above your script.
+3. The script is executed in an integrated WebViewPanel which will open besides
+   the active editor. You can view the output live, toggle Auto Scroll and stop
+   the script (kill the process) if you need to.
+
+![Preview Script](images/script-preview.png)
+
+---
+
+### Automated Debugging with ShellCheck
+
+When errors are detected in your shell script, they are highlighted directly in
+VS Code:
+
+- **Severity Levels**:
+  - Errors
+  - Warnings
+  - Info
+  - Style
+
+Quickly check issues with direct links to the
+[ShellCheck documentation](https://www.shellcheck.net/wiki). _Unfortunately
+quick actions are not implemented, but might be in the future._
+
+![Diagnostic Popup](images/diagnostic-popup.png)
+
+---
+
+### Settings
+
+Customize the extension via VS Code settings:
+
+| Setting                             | Description                                                                                                                                                                  |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `yaml-with-script.enabled`          | Enable or disable the extension.                                                                                                                                             |
+| `yaml-with-script.baseScript`       | A global script to be executed before the YAML script is executed with a click on `▶️ Run YAML with Script` (e.g., `source ~/.env` or `source ~/.yaml-with-script-base.sh`). |
+| `yaml-with-script.dialect`          | Specify the shell dialect for ShellCheck (`bash`, `sh`, `dash`, `zsh`, etc.).                                                                                                |
+| `yaml-with-script.severity`         | Configure severity levels for ShellCheck (`error`, `warning`, `info`, `style`).                                                                                              |
+| `yaml-with-script.shellcheckFolder` | This is the path to the folder that includes 'shellcheck', e.g. (`/opt/homebrew/bin` will lead to `/opt/homebrew/bin/shellcheck --version`)                                  |
+
+---
+
+### Prerequisites
+
+- **ShellCheck**: Ensure ShellCheck is installed and available in your `PATH`.
+  [Install ShellCheck](https://www.shellcheck.net/).
+
+## License
+
+This software is released under the MIT License (see [License](LICENSE.md)).

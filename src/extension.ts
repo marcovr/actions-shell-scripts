@@ -1,87 +1,102 @@
-import * as cp from "child_process";
-import * as yaml from "js-yaml";
+import process from "child_process";
+import path from "path";
 import * as vscode from "vscode";
+import { CodeLensProvider } from "./CodeLensProvider";
+import { DiagnosticProvider } from "./DiagnosticProvider";
+import { ScriptProvider } from "./ScriptProvider";
 
-// Führe ShellCheck auf dem extrahierten Shell-Code aus
-function runShellCheck(script: string): Promise<string> {
-  return new Promise((resolve, reject) => {
-    console.log(script);
+export const scriptProvider = new ScriptProvider();
+export const codeLensProvider = new CodeLensProvider();
+export const diagnosticProvider = new DiagnosticProvider();
 
-    const command = `echo '${script}' | shellcheck --shell=bash --format=json --norc /dev/stdin || true`;
+scriptProvider.setOnStartAnalyzeFunction(() => {
+  const scripts = scriptProvider.get();
 
-    cp.exec(command, (error, stdout, stderr) => {
-      if (error) {
-        reject(stderr || error.message);
-        return;
-      }
-      resolve(stdout);
+  scripts.forEach((script) => {
+    codeLensProvider.clearSingle(script.document);
+    diagnosticProvider.clearSingle(script.document);
+  });
+});
+
+scriptProvider.setOnEndAnalyzeFunction(() => {
+  const scripts = scriptProvider.get();
+
+  scripts.forEach(async (script) => {
+    codeLensProvider.add(script);
+    diagnosticProvider.add(script);
+  });
+
+  diagnosticProvider.updateDiagnostics();
+});
+
+function runExtension(
+  context: vscode.ExtensionContext,
+  document?: vscode.TextDocument
+) {
+  const config = vscode.workspace.getConfiguration("yaml-with-script");
+  const enabled = config.get("enabled");
+
+  if (!enabled) {
+    scriptProvider.clear();
+    return;
+  }
+
+  try {
+    const config = vscode.workspace.getConfiguration("yaml-with-script");
+    const shellcheckFolder = config.get<string>("shellcheckFolder") || "";
+    process.execSync(path.join(shellcheckFolder, "shellcheck --version"), {
+      encoding: "utf-8",
     });
-  });
+  } catch (error: any) {
+    scriptProvider.clear();
+    vscode.window.showErrorMessage(
+      "Could not start extension, shellsheck not installed properly!" + error
+    );
+    return;
+  }
+
+  if (document) {
+    scriptProvider.analyze(document);
+  } else {
+    scriptProvider.analyzeAll();
+  }
 }
 
-// Zeige die ShellCheck-Diagnosen im Editor an
-function showShellCheckDiagnostics(document: vscode.TextDocument, script: string, startLine: number) {
-  runShellCheck(script)
-    .then((result) => {
-      const diagnostics: vscode.Diagnostic[] = [];
-      const issues = JSON.parse(result);
+export async function activate(context: vscode.ExtensionContext) {
+  runExtension(context);
 
-      issues.forEach((issue: any) => {
-        const range = new vscode.Range(
-          new vscode.Position(startLine + issue.line - 1, issue.column - 1),
-          new vscode.Position(startLine + issue.line - 1, issue.column - 1 + issue.length)
-        );
-        const diagnostic = new vscode.Diagnostic(
-          range,
-          issue.message,
-          issue.level === "warning" ? vscode.DiagnosticSeverity.Warning : vscode.DiagnosticSeverity.Error
-        );
-        diagnostics.push(diagnostic);
-      });
-
-      const diagnosticCollection = vscode.languages.createDiagnosticCollection("shellcheck");
-      diagnosticCollection.set(document.uri, diagnostics);
-    })
-    .catch((err) => {
-      vscode.window.showErrorMessage("ShellCheck konnte nicht ausgeführt werden: " + err);
-    });
-}
-
-function extractShellScriptsFromYaml(yamlText: string) {
-  const parsedYaml: Record<string, any> = yaml.load(yamlText) as Record<string, any>;
-
-  const shellScripts: { script: string; startLine: number }[] = [];
-
-  // todo: rekursive einbauen
-  ["before_script", "script", "after_script"].forEach((section) => {
-    if (parsedYaml && parsedYaml[section]) {
-      const script = parsedYaml[section][0];
-
-      console.log(script);
-      const lines = script.split("\n");
-      const startLine = lines[0].length ? 1 : 0;
-      console.log(startLine);
-      shellScripts.push({ script, startLine });
+  vscode.workspace.onDidOpenTextDocument(
+    (document) => runExtension(context, document),
+    context.subscriptions
+  );
+  vscode.workspace.onDidChangeTextDocument((event) => {
+    if (
+      event.contentChanges.filter((item) => item.text.length > 0).length > 0
+    ) {
+      runExtension(context, event.document);
     }
-  });
-
-  return shellScripts;
-}
-
-export function activate(context: vscode.ExtensionContext) {
-  vscode.workspace.onDidSaveTextDocument((document) => {
-    if (document.languageId === "yaml") {
-      const yamlText = document.getText();
-
-      // Extrahiere Shell-Skripte
-      const shellScripts = extractShellScriptsFromYaml(yamlText);
-
-      // Zeige Fehler für jedes Skript im YAML-Dokument an
-      shellScripts.forEach((scriptObj) => {
-        showShellCheckDiagnostics(document, scriptObj.script, scriptObj.startLine);
-      });
+  }, context.subscriptions);
+  vscode.workspace.onDidCloseTextDocument(
+    (document) => runExtension(context, document),
+    context.subscriptions
+  );
+  vscode.workspace.onDidSaveTextDocument(
+    (document) => runExtension(context, document),
+    context.subscriptions
+  );
+  vscode.workspace.onDidChangeConfiguration((config) => {
+    if (config.affectsConfiguration("yaml-with-script")) {
+      runExtension(context);
     }
-  });
+  }, context.subscriptions);
+
+  const codeLensSubscription = vscode.languages.registerCodeLensProvider(
+    { pattern: "**/*.{yaml,yml}" },
+    codeLensProvider
+  );
+  context.subscriptions.push(codeLensSubscription);
 }
 
-export function deactivate() {}
+export function deactivate() {
+  scriptProvider.clear();
+}
