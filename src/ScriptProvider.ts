@@ -38,18 +38,13 @@ export class ScriptProvider {
     return this.scripts;
   }
 
-  analyzeAll() {
-    vscode.workspace.findFiles("**/*.{yaml,yml}").then((files) => {
-      for (const file of files) {
-        vscode.workspace.openTextDocument(file).then((document) => {
-          try {
-            this.analyze(document);
-          } catch (error) {
-            console.error(`triggerLintForEntireWorkspace: ${error}`);
-          }
-        });
-      }
-    });
+  analyzeAllOpen() {
+    vscode.window.visibleTextEditors
+      .map((editor) => editor.document)
+      .forEach((document) => {
+        console.log(document.fileName);
+        this.analyze(document);
+      });
   }
 
   analyze(document: vscode.TextDocument) {

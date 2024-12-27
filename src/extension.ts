@@ -29,10 +29,7 @@ scriptProvider.setOnEndAnalyzeFunction(() => {
   diagnosticProvider.updateDiagnostics();
 });
 
-function runExtension(
-  context: vscode.ExtensionContext,
-  document?: vscode.TextDocument
-) {
+function runExtension(document?: vscode.TextDocument) {
   const config = vscode.workspace.getConfiguration("yaml-with-script");
   const enabled = config.get("enabled");
 
@@ -58,35 +55,35 @@ function runExtension(
   if (document) {
     scriptProvider.analyze(document);
   } else {
-    scriptProvider.analyzeAll();
+    scriptProvider.analyzeAllOpen();
   }
 }
 
 export async function activate(context: vscode.ExtensionContext) {
-  runExtension(context);
+  runExtension();
 
   vscode.workspace.onDidOpenTextDocument(
-    (document) => runExtension(context, document),
+    (document) => runExtension(document),
     context.subscriptions
   );
   vscode.workspace.onDidChangeTextDocument((event) => {
     if (
       event.contentChanges.filter((item) => item.text.length > 0).length > 0
     ) {
-      runExtension(context, event.document);
+      runExtension(event.document);
     }
   }, context.subscriptions);
   vscode.workspace.onDidCloseTextDocument(
-    (document) => runExtension(context, document),
+    (document) => runExtension(document),
     context.subscriptions
   );
   vscode.workspace.onDidSaveTextDocument(
-    (document) => runExtension(context, document),
+    (document) => runExtension(document),
     context.subscriptions
   );
   vscode.workspace.onDidChangeConfiguration((config) => {
     if (config.affectsConfiguration("yaml-with-script")) {
-      runExtension(context);
+      runExtension();
     }
   }, context.subscriptions);
 
