@@ -3,7 +3,7 @@
   "displayName": "YAML with Script",
   "description": "A VS Code extension designed for GitLab CI users to analyze and execute shell scripts within YAML files. Highlight issues with ShellCheck diagnostics, run scripts directly from the editor, and streamline your CI pipeline development. Perfect for debugging and optimizing `.gitlab-ci.yml` files.",
   "icon": "images/icon.png",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "engines": {
     "vscode": "^1.96.0"
   },

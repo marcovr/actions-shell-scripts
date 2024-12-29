@@ -9,6 +9,16 @@ import { Script } from "./Script";
 
 export class CodeLensProvider implements vscode.CodeLensProvider {
   private codeLenses: Map<string, vscode.CodeLens[]> = new Map();
+  private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
+    new vscode.EventEmitter<void>();
+  public readonly onDidChangeCodeLenses: vscode.Event<void> =
+    this._onDidChangeCodeLenses.event;
+
+  constructor() {
+    vscode.workspace.onDidChangeConfiguration((_) => {
+      this._onDidChangeCodeLenses.fire();
+    });
+  }
 
   add(script: Script) {
     const codeLensPos = new vscode.Position(
@@ -26,10 +36,13 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
       ...(this.codeLenses.get(script.key) || []),
       codeLens,
     ]);
+
+    this._onDidChangeCodeLenses.fire();
   }
 
   clearSingle(document: vscode.TextDocument) {
     this.codeLenses.set(document.uri.toString(), []);
+    this._onDidChangeCodeLenses.fire();
   }
 
   provideCodeLenses(
@@ -63,7 +76,7 @@ vscode.commands.registerCommand(
         "yamlWithScriptOutput",
         "YAML with Script - Output",
         vscode.ViewColumn.Beside,
-        { enableScripts: true }
+        { enableScripts: true, retainContextWhenHidden: true }
       );
     } else {
       panel.webview.html = "";
