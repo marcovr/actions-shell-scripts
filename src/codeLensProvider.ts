@@ -10,7 +10,6 @@ import { Script } from "./Script";
 export class CodeLensProvider implements vscode.CodeLensProvider {
   private codeLenses: Map<string, vscode.CodeLens[]> = new Map();
 
-  // Fügt ein CodeLens hinzu oder erstellt es
   add(script: Script) {
     const codeLensPos = new vscode.Position(
       script.position.line + 1,
@@ -29,19 +28,16 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
     ]);
   }
 
-  // Entfernt CodeLens für ein bestimmtes Dokument
   clearSingle(document: vscode.TextDocument) {
     this.codeLenses.set(document.uri.toString(), []);
   }
 
-  // Gibt die CodeLenses für das Dokument zurück
   provideCodeLenses(
     document: vscode.TextDocument
   ): vscode.ProviderResult<vscode.CodeLens[]> {
     return this.codeLenses.get(document.uri.toString()) || [];
   }
 
-  // Resolves CodeLens (optional)
   resolveCodeLens?(
     codeLens: vscode.CodeLens
   ): vscode.ProviderResult<vscode.CodeLens> {
@@ -49,11 +45,9 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
   }
 }
 
-// Globale Variablen für das Panel und den Status
 let panel: vscode.WebviewPanel | undefined;
 let scriptRunning = false;
 
-// Command-Registrierung für das Ausführen von Skripten
 vscode.commands.registerCommand(
   "yaml-with-script.runScriptInTerminal",
   (script: Script) => {
@@ -64,7 +58,6 @@ vscode.commands.registerCommand(
 
     scriptRunning = true;
 
-    // Webview-Panel erstellen oder leeren
     if (!panel) {
       panel = vscode.window.createWebviewPanel(
         "yamlWithScriptOutput",
@@ -131,7 +124,6 @@ vscode.commands.registerCommand(
       }
     });
 
-    // Skriptausgabe verarbeiten
     const handleProcessOutput = (data: Buffer) => {
       if (panel) {
         panel.webview.postMessage({
@@ -144,7 +136,6 @@ vscode.commands.registerCommand(
     process.stdout.on("data", handleProcessOutput);
     process.stderr.on("data", handleProcessOutput);
 
-    // Skript beenden
     process.on("exit", (code, signal) => {
       const message = signal ? "Cancelled!" : `Finished (${code})`;
       if (panel) {
