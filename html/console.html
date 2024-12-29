@@ -1,107 +1,133 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Consolas', monospace;
-            font-size: 13px;
-            line-height: 1.4;
-            color: #cccccc;
-            overflow-wrap: break-word;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
+<meta charset="UTF-8">
+<style>
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #cccccc;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
 
-        #console-output {
-          margin: 0;
-          padding-left: 10px;
-          white-space: pre-wrap;
-          tab-size: 4;
-          overflow: auto;
-        }
+#console-output {
+    margin: 0;
+    padding-left: 10px;
+    tab-size: 4;
+    overflow: auto;
+    white-space: pre;
+}
 
-        .control-bar {
-            margin: 0;
-            padding: 10px;
-            background-color: #252526;
-            position: sticky;
-            top: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+#console-output.wrap-enabled {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
 
+.control-bar {
+    margin: 0;
+    padding: 10px;
+    background-color: #252526;
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-        }
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
-        .stop-button {
-            background-color: #f14c4c;
-            color: white;
-            border-radius: 3px;
-            border-color: #f14c4c;
-        }
-    </style>
+.checkbox-item {
+    display: flex;
+    align-items: center;
+}
+
+.stop-button {
+    background-color: #f14c4c;
+    color: white;
+    border-radius: 3px;
+    border-color: #f14c4c;
+}
+</style>
 </head>
 <body>
-    <div class="control-bar">
-        <div class="checkbox-container">
-            <input type="checkbox" id="autoscrollCheckbox" checked />
+<div class="control-bar">
+    <div class="checkbox-container">
+        <div class="checkbox-item">
+            <input type="checkbox" id="autoscrollCheckbox" checked>
             <label for="autoscrollCheckbox">Auto Scroll</label>
         </div>
-        <span class="status-text" id="status-text"></span>
-        <button class="stop-button" id="stopButton">Stop</button>
+        <div class="checkbox-item">
+            <input type="checkbox" id="lineWrapCheckbox" checked />
+            <label for="lineWrapCheckbox">Line Wrap</label>
+        </div>
     </div>
-    <div id="console-output"></div>
-    <script>
-        const vscode = acquireVsCodeApi();
-        const checkbox = document.getElementById('autoscrollCheckbox');
-        const consoleOutput = document.getElementById('console-output');
-        let isAutoScrollEnabled = checkbox.checked;
+    <span class="status-text" id="status-text"></span>
+    <button class="stop-button" id="stopButton">Stop</button>
+</div>
+<div id="console-output"></div>
+<script>
+const vscode = acquireVsCodeApi();
+const consoleOutput = document.getElementById('console-output');
 
-        function updateHeight() {
-            const contentDiv = document.getElementById('console-output');
-            const heightContentDiv = window.innerHeight * 0.9;
-            contentDiv.style.height = heightContentDiv + 'px';
-        }
+function updateHeight() {
+    const contentDiv = document.getElementById('console-output');
+    const heightContentDiv = window.innerHeight * 0.9;
+    contentDiv.style.height = heightContentDiv + 'px';
+}
 
-        updateHeight();
+updateHeight();
+window.addEventListener('resize', updateHeight);
 
-        window.addEventListener('resize', updateHeight);
+const lineWrapCheckbox = document.getElementById('lineWrapCheckbox');
+let isLineWrapEnabled = lineWrapCheckbox.checked;
 
-        checkbox.addEventListener('change', () => {
-            isAutoScrollEnabled = checkbox.checked;
-        });
+// Initiale Anwendung des Line Wrap
+consoleOutput.classList.toggle('wrap-enabled', isLineWrapEnabled);
 
-        const observer = new MutationObserver(() => {
-            if (isAutoScrollEnabled) {
-                consoleOutput.scrollTop = consoleOutput.scrollHeight;
-            }
-        });
+lineWrapCheckbox.addEventListener('change', () => {
+    isLineWrapEnabled = lineWrapCheckbox.checked;
+    consoleOutput.classList.toggle('wrap-enabled', isLineWrapEnabled);
+});
 
-        observer.observe(consoleOutput, { childList: true, subtree: true });
+const checkbox = document.getElementById('autoscrollCheckbox');
+let isAutoScrollEnabled = checkbox.checked;
 
-        window.addEventListener('message', (event) => {
-            const message = event.data;
-            if (message.type === 'updateContent') {
-                const contentDiv = document.getElementById('console-output');
-                contentDiv.innerHTML += message.value;
-            }
+checkbox.addEventListener('change', () => {
+    isAutoScrollEnabled = checkbox.checked;
+});
 
-            if (message.type === 'scriptStopped') {
-                document.getElementById('stopButton').style.display = 'none';
-                document.getElementById('status-text').innerText = message.value;
-            }
-        });
+const observer = new MutationObserver(() => {
+    if (isAutoScrollEnabled) {
+        consoleOutput.scrollTop = consoleOutput.scrollHeight;
+    }
+});
 
-        document.getElementById('stopButton').addEventListener('click', () => {
-            vscode.postMessage({ command: 'stopScript' });
-        });
-    </script>
+observer.observe(consoleOutput, { childList: true, subtree: true });
+
+window.addEventListener('message', (event) => {
+    const message = event.data;
+    if (message.type === 'updateContent') {
+        const contentDiv = document.getElementById('console-output');
+        contentDiv.innerHTML += message.value;
+    }
+    if (message.type === 'scriptStopped') {
+        document.getElementById('stopButton').style.display = 'none';
+        document.getElementById('status-text').innerText = message.value;
+    }
+});
+
+document.getElementById('stopButton').addEventListener('click', () => {
+    vscode.postMessage({ command: 'stopScript' });
+});
+</script>
 </body>
 </html>
