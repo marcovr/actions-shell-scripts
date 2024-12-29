@@ -10,38 +10,38 @@ import { Script } from "./Script";
 export class CodeLensProvider implements vscode.CodeLensProvider {
   private codeLenses: Map<string, vscode.CodeLens[]> = new Map();
 
+  // Fügt ein CodeLens hinzu oder erstellt es
   add(script: Script) {
     const codeLensPos = new vscode.Position(
       script.position.line + 1,
       script.position.character
     );
-
     const codeLensRange = new vscode.Range(codeLensPos, codeLensPos);
-    const codeLens = new vscode.CodeLens(codeLensRange);
-
-    codeLens.command = {
+    const codeLens = new vscode.CodeLens(codeLensRange, {
       title: "▶️ Run YAML with Script",
       command: "yaml-with-script.runScriptInTerminal",
       arguments: [script],
-    };
+    });
 
-    if (this.codeLenses.has(script.key)) {
-      this.codeLenses.get(script.key)?.push(codeLens);
-    } else {
-      this.codeLenses.set(script.key, [codeLens]);
-    }
+    this.codeLenses.set(script.key, [
+      ...(this.codeLenses.get(script.key) || []),
+      codeLens,
+    ]);
   }
 
+  // Entfernt CodeLens für ein bestimmtes Dokument
   clearSingle(document: vscode.TextDocument) {
     this.codeLenses.set(document.uri.toString(), []);
   }
 
+  // Gibt die CodeLenses für das Dokument zurück
   provideCodeLenses(
     document: vscode.TextDocument
   ): vscode.ProviderResult<vscode.CodeLens[]> {
     return this.codeLenses.get(document.uri.toString()) || [];
   }
 
+  // Resolves CodeLens (optional)
   resolveCodeLens?(
     codeLens: vscode.CodeLens
   ): vscode.ProviderResult<vscode.CodeLens> {
@@ -49,8 +49,11 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
   }
 }
 
+// Globale Variablen für das Panel und den Status
 let panel: vscode.WebviewPanel | undefined;
 let scriptRunning = false;
+
+// Command-Registrierung für das Ausführen von Skripten
 vscode.commands.registerCommand(
   "yaml-with-script.runScriptInTerminal",
   (script: Script) => {
@@ -61,14 +64,13 @@ vscode.commands.registerCommand(
 
     scriptRunning = true;
 
+    // Webview-Panel erstellen oder leeren
     if (!panel) {
       panel = vscode.window.createWebviewPanel(
         "yamlWithScriptOutput",
         "YAML with Script - Output",
         vscode.ViewColumn.Beside,
-        {
-          enableScripts: true,
-        }
+        { enableScripts: true }
       );
     } else {
       panel.webview.html = "";
@@ -87,37 +89,34 @@ vscode.commands.registerCommand(
       fg: "#cccccc",
       bg: "#1e1e1e",
       colors: {
-        0: "#000000", // black
-        1: "#cd3131", // red
-        2: "#0dbc79", // green
-        3: "#e5e510", // yellow
-        4: "#2472c8", // blue
-        5: "#bc3fbc", // magenta
-        6: "#11a8cd", // cyan
-        7: "#e5e5e5", // white
-        8: "#666666", // bright black
-        9: "#f14c4c", // bright red
-        10: "#23d18b", // bright green
-        11: "#f5f543", // bright yellow
-        12: "#3b8eea", // bright blue
-        13: "#d670d6", // bright magenta
-        14: "#29b8db", // bright cyan
-        15: "#e5e5e5", // bright white
+        0: "#000000",
+        1: "#cd3131",
+        2: "#0dbc79",
+        3: "#e5e510",
+        4: "#2472c8",
+        5: "#bc3fbc",
+        6: "#11a8cd",
+        7: "#e5e5e5",
+        8: "#666666",
+        9: "#f14c4c",
+        10: "#23d18b",
+        11: "#f5f543",
+        12: "#3b8eea",
+        13: "#d670d6",
+        14: "#29b8db",
+        15: "#e5e5e5",
       },
     });
 
     const config = vscode.workspace.getConfiguration("yaml-with-script");
-    const baseScript = config.get("baseScript");
+    const baseScript = config.get("baseScript", "");
 
-    const runScriptCommand = [];
-    runScriptCommand.push(baseScript !== "" ? `source ${baseScript} &&` : "");
-    runScriptCommand.push(script.getContent());
+    const runScriptCommand = baseScript
+      ? `source ${baseScript} && ${script.getContent()}`
+      : script.getContent();
 
-    const cwd = vscode.workspace.workspaceFolders?.at(0)?.uri.fsPath;
-    const process = spawn(runScriptCommand.join("\n"), [], {
-      shell: true,
-      cwd: cwd,
-    });
+    const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const process = spawn(runScriptCommand, [], { shell: true, cwd });
 
     panel.onDidDispose(() => {
       if (process.pid) {
@@ -126,53 +125,33 @@ vscode.commands.registerCommand(
       panel = undefined;
     });
 
-    panel.webview.onDidReceiveMessage(
-      (message) => {
-        switch (message.command) {
-          case "stopScript":
-            if (process.pid) {
-              terminate(process.pid);
-            }
-            break;
-        }
-      },
-      undefined,
-      []
-    );
+    panel.webview.onDidReceiveMessage((message) => {
+      if (message.command === "stopScript" && process.pid) {
+        terminate(process.pid);
+      }
+    });
 
-    process.stdout.on("data", (data) => {
+    // Skriptausgabe verarbeiten
+    const handleProcessOutput = (data: Buffer) => {
       if (panel) {
         panel.webview.postMessage({
           type: "updateContent",
           value: ansiToHtml.toHtml(data.toString("utf-8")),
         });
       }
-    });
+    };
 
-    process.stderr.on("data", (data) => {
-      if (panel) {
-        panel.webview.postMessage({
-          type: "updateContent",
-          value: ansiToHtml.toHtml(data.toString("utf-8")),
-        });
-      }
-    });
+    process.stdout.on("data", handleProcessOutput);
+    process.stderr.on("data", handleProcessOutput);
 
+    // Skript beenden
     process.on("exit", (code, signal) => {
-      if (signal) {
-        if (panel) {
-          panel.webview.postMessage({
-            type: "scriptStopped",
-            value: `Cancelled!`,
-          });
-        }
-      } else {
-        if (panel) {
-          panel.webview.postMessage({
-            type: "scriptStopped",
-            value: `Finished (${code})`,
-          });
-        }
+      const message = signal ? "Cancelled!" : `Finished (${code})`;
+      if (panel) {
+        panel.webview.postMessage({
+          type: "scriptStopped",
+          value: message,
+        });
       }
 
       scriptRunning = false;
