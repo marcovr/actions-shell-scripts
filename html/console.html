@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #cccccc;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        #console-output {
+          margin: 0;
+          padding-left: 10px;
+          white-space: pre-wrap;
+          tab-size: 4;
+          overflow: auto;
+        }
+
+        .control-bar {
+            margin: 0;
+            padding: 10px;
+            background-color: #252526;
+            position: sticky;
+            top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .stop-button {
+            background-color: #f14c4c;
+            color: white;
+            border-radius: 3px;
+            border-color: #f14c4c;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-bar">
+        <div class="checkbox-container">
+            <input type="checkbox" id="autoscrollCheckbox" checked />
+            <label for="autoscrollCheckbox">Auto Scroll</label>
+        </div>
+        <span class="status-text" id="status-text"></span>
+        <button class="stop-button" id="stopButton">Stop</button>
+    </div>
+    <div id="console-output"></div>
+    <script>
+        const vscode = acquireVsCodeApi();
+        const checkbox = document.getElementById('autoscrollCheckbox');
+        const consoleOutput = document.getElementById('console-output');
+        let isAutoScrollEnabled = checkbox.checked;
+
+        function updateHeight() {
+            const contentDiv = document.getElementById('console-output');
+            const heightContentDiv = window.innerHeight * 0.9;
+            contentDiv.style.height = heightContentDiv + 'px';
+        }
+
+        updateHeight();
+
+        window.addEventListener('resize', updateHeight);
+
+        checkbox.addEventListener('change', () => {
+            isAutoScrollEnabled = checkbox.checked;
+        });
+
+        const observer = new MutationObserver(() => {
+            if (isAutoScrollEnabled) {
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }
+        });
+
+        observer.observe(consoleOutput, { childList: true, subtree: true });
+
+        window.addEventListener('message', (event) => {
+            const message = event.data;
+            if (message.type === 'updateContent') {
+                const contentDiv = document.getElementById('console-output');
+                contentDiv.innerHTML += message.value;
+            }
+
+            if (message.type === 'scriptStopped') {
+                document.getElementById('stopButton').style.display = 'none';
+                document.getElementById('status-text').innerText = message.value;
+            }
+        });
+
+        document.getElementById('stopButton').addEventListener('click', () => {
+            vscode.postMessage({ command: 'stopScript' });
+        });
+    </script>
+</body>
+</html>

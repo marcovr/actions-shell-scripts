@@ -5,6 +5,7 @@ import { CodeLensProvider } from "./CodeLensProvider";
 import { DiagnosticProvider } from "./DiagnosticProvider";
 import { ScriptProvider } from "./ScriptProvider";
 
+export let extensionContext: vscode.ExtensionContext;
 export const scriptProvider = new ScriptProvider();
 export const codeLensProvider = new CodeLensProvider();
 export const diagnosticProvider = new DiagnosticProvider();
@@ -60,6 +61,7 @@ function runExtension(document?: vscode.TextDocument) {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
+  extensionContext = context;
   runExtension();
 
   vscode.workspace.onDidOpenTextDocument(

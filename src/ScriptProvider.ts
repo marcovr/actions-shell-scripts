@@ -42,14 +42,12 @@ export class ScriptProvider {
     vscode.window.visibleTextEditors
       .map((editor) => editor.document)
       .forEach((document) => {
-        console.log(document.fileName);
         this.analyze(document);
       });
   }
 
   analyze(document: vscode.TextDocument) {
     if (this.processing) {
-      console.log("Processing already in process!");
       return;
     }
     this.processing = true;
