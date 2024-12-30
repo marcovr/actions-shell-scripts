@@ -1,5 +1,4 @@
 import process from "child_process";
-import fs from "fs";
 import path from "path";
 import {
   Diagnostic,
@@ -12,7 +11,7 @@ import {
 } from "vscode";
 import { Script } from "./Script";
 
-export class DiagnosticProvider {
+export class ShellcheckProvider {
   private diagnostics: Map<Uri, Diagnostic[]> = new Map();
   private diagnosticCollection = languages.createDiagnosticCollection(
     "yaml-with-script-diagnostics"
@@ -24,18 +23,16 @@ export class DiagnosticProvider {
     const dialect = config.get("dialect");
     const shellcheckFolder = config.get("shellcheckFolder", "");
 
-    const tempScriptPath = script.createTmpFile();
-
     const command = [];
+    command.push(`printf '%s' '${script.getContent()}' | `);
     command.push(path.join(shellcheckFolder, "shellcheck"));
     command.push(`--format=json`);
     command.push(`--severity=${severity}`);
     command.push(dialect === "inline" ? "" : `--shell=${dialect}`);
-    command.push(tempScriptPath);
+    command.push("/dev/stdin");
     command.push("|| true");
 
     const output = process.execSync(command.join(" "), { encoding: "utf-8" });
-    fs.rm(tempScriptPath, () => {});
     const issues = JSON.parse(output);
 
     issues.forEach((issue: any) => {

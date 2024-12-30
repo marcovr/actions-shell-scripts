@@ -7,14 +7,14 @@ import {
   window,
   workspace,
 } from "vscode";
-import { DiagnosticProvider } from "./DiagnosticProvider";
 import { RunScriptProvider } from "./RunScriptProvider";
 import { ScriptProvider } from "./ScriptProvider";
+import { ShellcheckProvider } from "./ShellcheckProvider";
 
 export let extensionContext: ExtensionContext;
 export const scriptProvider = new ScriptProvider();
 export const codeLensProvider = new RunScriptProvider();
-export const diagnosticProvider = new DiagnosticProvider();
+export const diagnosticProvider = new ShellcheckProvider();
 
 scriptProvider.setOnStartAnalyzeFunction(() => {
   const scripts = scriptProvider.get();
@@ -75,9 +75,7 @@ export async function activate(context: ExtensionContext) {
     context.subscriptions
   );
   workspace.onDidChangeTextDocument((event) => {
-    if (
-      event.contentChanges.filter((item) => item.text.length > 0).length > 0
-    ) {
+    if (event.contentChanges.some((item) => item.text.length > 0)) {
       runExtension(event.document);
     }
   }, context.subscriptions);

@@ -1,6 +1,3 @@
-import fs from "fs";
-import os from "os";
-import path from "path";
 import { Position, Range, TextDocument } from "vscode";
 import yaml from "yaml";
 
@@ -51,38 +48,5 @@ export class Script {
     }
 
     return yamlDoc[this.index];
-  }
-
-  createTmpFile() {
-    const tmpExtensionFolder = path.join(os.homedir(), ".yaml-with-bash");
-    fs.mkdirSync(tmpExtensionFolder, { recursive: true });
-
-    const filename = [];
-    filename.push(this.getDate());
-    filename.push("-");
-    filename.push(path.basename(this.document.fileName).replace(" ", "_"));
-    filename.push("-");
-    filename.push(this.path);
-    filename.push(".sh");
-
-    const tempScriptPath = path.join(tmpExtensionFolder, filename.join(""));
-    fs.writeFileSync(tempScriptPath, this.getContent());
-    fs.chmodSync(tempScriptPath, 0o755);
-    return tempScriptPath;
-  }
-
-  private pad2(n: number) {
-    return n < 10 ? "0" + n : n;
-  }
-  private getDate(): string {
-    const date = new Date();
-    return (
-      date.getFullYear().toString() +
-      this.pad2(date.getMonth() + 1) +
-      this.pad2(date.getDate()) +
-      this.pad2(date.getHours()) +
-      this.pad2(date.getMinutes()) +
-      this.pad2(date.getSeconds())
-    );
   }
 }
