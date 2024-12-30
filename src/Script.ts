@@ -1,30 +1,27 @@
-import * as fs from "fs";
-import * as os from "os";
+import fs from "fs";
+import os from "os";
 import path from "path";
-import * as vscode from "vscode";
-import * as yaml from "yaml";
+import { Position, Range, TextDocument } from "vscode";
+import yaml from "yaml";
 
 export class Script {
   public key: string;
-  public document: vscode.TextDocument;
-  public position: vscode.Position;
+  public document: TextDocument;
+  public position: Position;
   public path: string;
-  public codelensPosition: vscode.Position;
+  public codelensPosition: Position;
   private index: number;
 
   constructor(
-    document: vscode.TextDocument,
-    position: vscode.Position,
+    document: TextDocument,
+    position: Position,
     index: number,
     path: string
   ) {
     this.key = document.uri.toString();
     this.document = document;
     this.position = position;
-    this.codelensPosition = new vscode.Position(
-      position.line + 1,
-      position.character
-    );
+    this.codelensPosition = new Position(position.line + 1, position.character);
     this.index = index;
     this.path = path;
   }
@@ -35,7 +32,7 @@ export class Script {
     lineEnd: number,
     columnEnd: number
   ) {
-    return new vscode.Range(
+    return new Range(
       this.position.translate(lineStart, columnStart),
       this.position.translate(lineEnd, columnEnd)
     );
@@ -78,7 +75,7 @@ export class Script {
     return n < 10 ? "0" + n : n;
   }
   private getDate(): string {
-    var date = new Date();
+    const date = new Date();
     return (
       date.getFullYear().toString() +
       this.pad2(date.getMonth() + 1) +

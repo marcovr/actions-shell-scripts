@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import { Position, TextDocument, window } from "vscode";
 import { isMap, parseDocument } from "yaml";
 import { Script } from "./Script";
 
@@ -28,7 +28,7 @@ export class ScriptProvider {
     this.onEndAnalyzeFunction(this.scripts);
   }
 
-  clearDocument(document: vscode.TextDocument) {
+  clearDocument(document: TextDocument) {
     this.scripts = this.scripts.filter(
       (script) => script.document.uri !== document.uri
     );
@@ -39,14 +39,14 @@ export class ScriptProvider {
   }
 
   analyzeAllOpen() {
-    vscode.window.visibleTextEditors
+    window.visibleTextEditors
       .map((editor) => editor.document)
       .forEach((document) => {
         this.analyze(document);
       });
   }
 
-  analyze(document: vscode.TextDocument) {
+  analyze(document: TextDocument) {
     if (this.processing) {
       return;
     }
@@ -74,11 +74,7 @@ export class ScriptProvider {
     this.processing = false;
   }
 
-  private searchScripts(
-    document: vscode.TextDocument,
-    yaml: any,
-    path: string
-  ) {
+  private searchScripts(document: TextDocument, yaml: any, path: string) {
     if (isMap(yaml.value)) {
       yaml.value.items.forEach((item: any) => {
         this.searchScripts(document, item, path + "." + item.key);
@@ -108,6 +104,6 @@ export class ScriptProvider {
     const lines = yamlText.slice(0, offset).split("\n");
     const line = lines.length;
     const col = lines[lines.length - 1].length;
-    return new vscode.Position(line - 1, col - 1);
+    return new Position(line - 1, col - 1);
   }
 }

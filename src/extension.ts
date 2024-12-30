@@ -1,13 +1,19 @@
 import process from "child_process";
 import path from "path";
-import * as vscode from "vscode";
-import { CodeLensProvider } from "./CodeLensProvider";
+import {
+  ExtensionContext,
+  languages,
+  TextDocument,
+  window,
+  workspace,
+} from "vscode";
 import { DiagnosticProvider } from "./DiagnosticProvider";
+import { RunScriptProvider } from "./RunScriptProvider";
 import { ScriptProvider } from "./ScriptProvider";
 
-export let extensionContext: vscode.ExtensionContext;
+export let extensionContext: ExtensionContext;
 export const scriptProvider = new ScriptProvider();
-export const codeLensProvider = new CodeLensProvider();
+export const codeLensProvider = new RunScriptProvider();
 export const diagnosticProvider = new DiagnosticProvider();
 
 scriptProvider.setOnStartAnalyzeFunction(() => {
@@ -30,8 +36,8 @@ scriptProvider.setOnEndAnalyzeFunction(() => {
   diagnosticProvider.updateDiagnostics();
 });
 
-function runExtension(document?: vscode.TextDocument) {
-  const config = vscode.workspace.getConfiguration("yaml-with-script");
+function runExtension(document?: TextDocument) {
+  const config = workspace.getConfiguration("yaml-with-script");
   const enabled = config.get("enabled");
 
   if (!enabled) {
@@ -40,14 +46,14 @@ function runExtension(document?: vscode.TextDocument) {
   }
 
   try {
-    const config = vscode.workspace.getConfiguration("yaml-with-script");
+    const config = workspace.getConfiguration("yaml-with-script");
     const shellcheckFolder = config.get<string>("shellcheckFolder") || "";
     process.execSync(path.join(shellcheckFolder, "shellcheck --version"), {
       encoding: "utf-8",
     });
   } catch (error: any) {
     scriptProvider.clear();
-    vscode.window.showErrorMessage(
+    window.showErrorMessage(
       "Could not start extension, shellsheck not installed properly!" + error
     );
     return;
@@ -60,36 +66,36 @@ function runExtension(document?: vscode.TextDocument) {
   }
 }
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate(context: ExtensionContext) {
   extensionContext = context;
   runExtension();
 
-  vscode.workspace.onDidOpenTextDocument(
+  workspace.onDidOpenTextDocument(
     (document) => runExtension(document),
     context.subscriptions
   );
-  vscode.workspace.onDidChangeTextDocument((event) => {
+  workspace.onDidChangeTextDocument((event) => {
     if (
       event.contentChanges.filter((item) => item.text.length > 0).length > 0
     ) {
       runExtension(event.document);
     }
   }, context.subscriptions);
-  vscode.workspace.onDidCloseTextDocument(
+  workspace.onDidCloseTextDocument(
     (document) => runExtension(document),
     context.subscriptions
   );
-  vscode.workspace.onDidSaveTextDocument(
+  workspace.onDidSaveTextDocument(
     (document) => runExtension(document),
     context.subscriptions
   );
-  vscode.workspace.onDidChangeConfiguration((config) => {
+  workspace.onDidChangeConfiguration((config) => {
     if (config.affectsConfiguration("yaml-with-script")) {
       runExtension();
     }
   }, context.subscriptions);
 
-  const codeLensSubscription = vscode.languages.registerCodeLensProvider(
+  const codeLensSubscription = languages.registerCodeLensProvider(
     { pattern: "**/*.{yaml,yml}" },
     codeLensProvider
   );

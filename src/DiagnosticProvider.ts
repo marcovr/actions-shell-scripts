@@ -1,17 +1,25 @@
 import process from "child_process";
-import * as fs from "fs";
+import fs from "fs";
 import path from "path";
-import * as vscode from "vscode";
+import {
+  Diagnostic,
+  DiagnosticSeverity,
+  languages,
+  Range,
+  TextDocument,
+  Uri,
+  workspace,
+} from "vscode";
 import { Script } from "./Script";
 
 export class DiagnosticProvider {
-  private diagnostics: Map<vscode.Uri, vscode.Diagnostic[]> = new Map();
-  private diagnosticCollection = vscode.languages.createDiagnosticCollection(
+  private diagnostics: Map<Uri, Diagnostic[]> = new Map();
+  private diagnosticCollection = languages.createDiagnosticCollection(
     "yaml-with-script-diagnostics"
   );
 
   add(script: Script) {
-    const config = vscode.workspace.getConfiguration("yaml-with-script");
+    const config = workspace.getConfiguration("yaml-with-script");
     const severity = config.get("severity");
     const dialect = config.get("dialect");
     const shellcheckFolder = config.get("shellcheckFolder", "");
@@ -34,38 +42,32 @@ export class DiagnosticProvider {
       let severity;
       switch (issue.level) {
         case "error":
-          severity = vscode.DiagnosticSeverity.Error;
+          severity = DiagnosticSeverity.Error;
           break;
         case "warning":
-          severity = vscode.DiagnosticSeverity.Warning;
+          severity = DiagnosticSeverity.Warning;
           break;
         case "info":
-          severity = vscode.DiagnosticSeverity.Information;
+          severity = DiagnosticSeverity.Information;
           break;
         case "style":
-          severity = vscode.DiagnosticSeverity.Hint;
+          severity = DiagnosticSeverity.Hint;
           break;
         default:
-          severity = vscode.DiagnosticSeverity.Information;
+          severity = DiagnosticSeverity.Information;
           break;
       }
 
-      const position = new vscode.Range(
+      const position = new Range(
         script.position.translate(issue.line, issue.column),
         script.position.translate(issue.endLine, issue.endColumn)
       );
-      const diagnostic = new vscode.Diagnostic(
-        position,
-        issue.message,
-        severity
-      );
+      const diagnostic = new Diagnostic(position, issue.message, severity);
 
       diagnostic.source = "shellcheck";
       diagnostic.code = {
         value: `SC${issue.code}`,
-        target: vscode.Uri.parse(
-          `https://www.shellcheck.net/wiki/SC${issue.code}`
-        ),
+        target: Uri.parse(`https://www.shellcheck.net/wiki/SC${issue.code}`),
       };
 
       if (this.diagnostics.has(script.document.uri)) {
@@ -78,7 +80,7 @@ export class DiagnosticProvider {
     this.updateDiagnostics();
   }
 
-  clearSingle(document: vscode.TextDocument) {
+  clearSingle(document: TextDocument) {
     this.diagnostics.set(document.uri, []);
   }
 

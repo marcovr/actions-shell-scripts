@@ -3,30 +3,43 @@ import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 import terminate from "terminate";
-import * as vscode from "vscode";
+import {
+  CodeLens,
+  CodeLensProvider,
+  commands,
+  Event,
+  EventEmitter,
+  Position,
+  ProviderResult,
+  Range,
+  TextDocument,
+  ViewColumn,
+  WebviewPanel,
+  window,
+  workspace,
+} from "vscode";
 import { extensionContext } from "./extension";
 import { Script } from "./Script";
 
-export class CodeLensProvider implements vscode.CodeLensProvider {
-  private codeLenses: Map<string, vscode.CodeLens[]> = new Map();
-  private _onDidChangeCodeLenses: vscode.EventEmitter<void> =
-    new vscode.EventEmitter<void>();
-  public readonly onDidChangeCodeLenses: vscode.Event<void> =
+export class RunScriptProvider implements CodeLensProvider {
+  private codeLenses: Map<string, CodeLens[]> = new Map();
+  private _onDidChangeCodeLenses: EventEmitter<void> = new EventEmitter<void>();
+  public readonly onDidChangeCodeLenses: Event<void> =
     this._onDidChangeCodeLenses.event;
 
   constructor() {
-    vscode.workspace.onDidChangeConfiguration((_) => {
+    workspace.onDidChangeConfiguration((_) => {
       this._onDidChangeCodeLenses.fire();
     });
   }
 
   add(script: Script) {
-    const codeLensPos = new vscode.Position(
+    const codeLensPos = new Position(
       script.position.line + 1,
       script.position.character
     );
-    const codeLensRange = new vscode.Range(codeLensPos, codeLensPos);
-    const codeLens = new vscode.CodeLens(codeLensRange, {
+    const codeLensRange = new Range(codeLensPos, codeLensPos);
+    const codeLens = new CodeLens(codeLensRange, {
       title: "▶️ Run YAML with Script",
       command: "yaml-with-script.runScriptInTerminal",
       arguments: [script],
@@ -40,42 +53,38 @@ export class CodeLensProvider implements vscode.CodeLensProvider {
     this._onDidChangeCodeLenses.fire();
   }
 
-  clearSingle(document: vscode.TextDocument) {
+  clearSingle(document: TextDocument) {
     this.codeLenses.set(document.uri.toString(), []);
     this._onDidChangeCodeLenses.fire();
   }
 
-  provideCodeLenses(
-    document: vscode.TextDocument
-  ): vscode.ProviderResult<vscode.CodeLens[]> {
+  provideCodeLenses(document: TextDocument): ProviderResult<CodeLens[]> {
     return this.codeLenses.get(document.uri.toString()) || [];
   }
 
-  resolveCodeLens?(
-    codeLens: vscode.CodeLens
-  ): vscode.ProviderResult<vscode.CodeLens> {
+  resolveCodeLens?(codeLens: CodeLens): ProviderResult<CodeLens> {
     return codeLens;
   }
 }
 
-let panel: vscode.WebviewPanel | undefined;
+let panel: WebviewPanel | undefined;
 let scriptRunning = false;
 
-vscode.commands.registerCommand(
+commands.registerCommand(
   "yaml-with-script.runScriptInTerminal",
   (script: Script) => {
     if (scriptRunning) {
-      vscode.window.showWarningMessage("A script is already running!");
+      window.showWarningMessage("A script is already running!");
       return;
     }
 
     scriptRunning = true;
 
     if (!panel) {
-      panel = vscode.window.createWebviewPanel(
+      panel = window.createWebviewPanel(
         "yamlWithScriptOutput",
         "YAML with Script - Output",
-        vscode.ViewColumn.Beside,
+        ViewColumn.Beside,
         { enableScripts: true, retainContextWhenHidden: true }
       );
     } else {
@@ -114,14 +123,14 @@ vscode.commands.registerCommand(
       },
     });
 
-    const config = vscode.workspace.getConfiguration("yaml-with-script");
+    const config = workspace.getConfiguration("yaml-with-script");
     const baseScript = config.get("baseScript", "");
 
     const runScriptCommand = baseScript
       ? `source ${baseScript} && ${script.getContent()}`
       : script.getContent();
 
-    const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    const cwd = workspace.workspaceFolders?.[0]?.uri.fsPath;
     const process = spawn(runScriptCommand, [], { shell: true, cwd });
 
     panel.onDidDispose(() => {
