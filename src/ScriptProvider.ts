@@ -1,62 +1,80 @@
-import { Position, TextDocument, window } from "vscode";
+import process from "child_process";
+import path from "path";
+import {
+  ExtensionContext,
+  languages,
+  Position,
+  TextDocument,
+  window,
+  workspace,
+} from "vscode";
 import { isMap, parseDocument } from "yaml";
+import { RunScriptProvider } from "./RunScriptProvider";
 import { Script } from "./Script";
+import { ShellcheckProvider } from "./ShellcheckProvider";
 
 export class ScriptProvider {
-  private scripts: Script[] = [];
-  private onStartAnalyzeFunction: (scripts: Script[]) => void = () => {};
-  private onEndAnalyzeFunction: (scripts: Script[]) => void = () => {};
-  private processing = false;
+  private extensionPath = "";
+  private timer: NodeJS.Timeout | undefined;
+  private runScriptProvider = new RunScriptProvider();
+  private shellcheckProvider = new ShellcheckProvider();
 
-  add(script: Script) {
-    this.scripts.push(script);
-  }
-
-  setOnStartAnalyzeFunction(
-    onStartAnalyzeFunction: (scripts: Script[]) => void
-  ) {
-    this.onStartAnalyzeFunction = onStartAnalyzeFunction;
-  }
-
-  setOnEndAnalyzeFunction(onEndAnalyzeFunction: (scripts: Script[]) => void) {
-    this.onEndAnalyzeFunction = onEndAnalyzeFunction;
+  initContext(context: ExtensionContext) {
+    this.extensionPath = context.extensionPath;
+    const codeLensSubscription = languages.registerCodeLensProvider(
+      { pattern: "**/*.{yaml,yml}" },
+      this.runScriptProvider
+    );
+    context.subscriptions.push(codeLensSubscription);
   }
 
   clear() {
-    this.onStartAnalyzeFunction(this.scripts);
-    this.scripts = [];
-    this.onEndAnalyzeFunction(this.scripts);
+    this.runScriptProvider.clear();
+    this.shellcheckProvider.clear();
   }
 
-  clearDocument(document: TextDocument) {
-    this.scripts = this.scripts.filter(
-      (script) => script.document.uri !== document.uri
-    );
+  analyzeWithTimeout() {
+    if (this.timer) {
+      this.timer.refresh();
+    } else {
+      this.timer = setTimeout(() => {
+        this.analyze();
+      }, 500);
+    }
   }
 
-  get() {
-    return this.scripts;
-  }
+  analyze() {
+    const config = workspace.getConfiguration("yaml-with-script");
+    const enabled = config.get("enabled");
 
-  analyzeAllOpen() {
-    window.visibleTextEditors
-      .map((editor) => editor.document)
-      .forEach((document) => {
-        this.analyze(document);
-      });
-  }
-
-  analyze(document: TextDocument) {
-    if (this.processing) {
+    if (!enabled) {
+      this.clear();
       return;
     }
-    this.processing = true;
 
     try {
-      this.onStartAnalyzeFunction(this.scripts);
+      const config = workspace.getConfiguration("yaml-with-script");
+      const shellcheckFolder = config.get<string>("shellcheckFolder") || "";
+      process.execSync(path.join(shellcheckFolder, "shellcheck --version"), {
+        encoding: "utf-8",
+      });
+    } catch (error: any) {
+      this.clear();
+      window.showErrorMessage(
+        "Could not start extension, shellsheck not installed properly!" + error
+      );
+      return;
+    }
 
-      this.clearDocument(document);
+    const activeTextEditor = window.activeTextEditor;
+    if (!activeTextEditor) {
+      return;
+    }
 
+    const document = activeTextEditor.document;
+    this.clear();
+
+    try {
       const text = document.getText();
       const yaml = parseDocument(text);
 
@@ -65,13 +83,9 @@ export class ScriptProvider {
           this.searchScripts(document, item, item.key.toString());
         });
       }
-
-      this.onEndAnalyzeFunction(this.scripts);
     } catch (error) {
       console.error(error);
     }
-
-    this.processing = false;
   }
 
   private searchScripts(document: TextDocument, yaml: any, path: string) {
@@ -94,10 +108,12 @@ export class ScriptProvider {
       document,
       this.offsetToLineCol(document.getText(), items[itemCount].range[0]),
       itemCount,
-      path
+      path,
+      this.extensionPath
     );
 
-    this.add(script);
+    this.runScriptProvider.add(script);
+    this.shellcheckProvider.add(script);
   }
 
   private offsetToLineCol(yamlText: string, offset: number) {

@@ -6,6 +6,7 @@ export class Script {
   public document: TextDocument;
   public position: Position;
   public path: string;
+  public extensionPath: string;
   public codelensPosition: Position;
   private index: number;
 
@@ -13,7 +14,8 @@ export class Script {
     document: TextDocument,
     position: Position,
     index: number,
-    path: string
+    path: string,
+    extensionPath: string
   ) {
     this.key = document.uri.toString();
     this.document = document;
@@ -21,6 +23,7 @@ export class Script {
     this.codelensPosition = new Position(position.line + 1, position.character);
     this.index = index;
     this.path = path;
+    this.extensionPath = extensionPath;
   }
 
   getRangeToPosition(
