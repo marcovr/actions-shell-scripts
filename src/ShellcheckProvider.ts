@@ -5,17 +5,19 @@ import {
   DiagnosticSeverity,
   languages,
   Range,
-  TextDocument,
   Uri,
   workspace,
 } from "vscode";
 import { Script } from "./Script";
 
 export class ShellcheckProvider {
-  private diagnostics: Map<Uri, Diagnostic[]> = new Map();
-  private diagnosticCollection = languages.createDiagnosticCollection(
+  private diagnostics = languages.createDiagnosticCollection(
     "yaml-with-script-diagnostics"
   );
+
+  clear() {
+    this.diagnostics.clear();
+  }
 
   add(script: Script) {
     const config = workspace.getConfiguration("yaml-with-script");
@@ -68,23 +70,15 @@ export class ShellcheckProvider {
       };
 
       if (this.diagnostics.has(script.document.uri)) {
-        this.diagnostics.get(script.document.uri)?.push(diagnostic);
+        const existingDiagnostics =
+          this.diagnostics.get(script.document.uri) ?? [];
+        this.diagnostics.set(script.document.uri, [
+          diagnostic,
+          ...existingDiagnostics,
+        ]);
       } else {
         this.diagnostics.set(script.document.uri, [diagnostic]);
       }
-    });
-
-    this.updateDiagnostics();
-  }
-
-  clearSingle(document: TextDocument) {
-    this.diagnostics.set(document.uri, []);
-  }
-
-  updateDiagnostics() {
-    this.diagnostics.forEach((diagnostics, uri) => {
-      this.diagnosticCollection.set(uri, undefined);
-      this.diagnosticCollection.set(uri, diagnostics);
     });
   }
 }

@@ -4,13 +4,13 @@ import fs from "fs";
 import path from "path";
 import terminate from "terminate";
 import {
+  CancellationToken,
   CodeLens,
   CodeLensProvider,
   commands,
   Event,
   EventEmitter,
   Position,
-  ProviderResult,
   Range,
   TextDocument,
   ViewColumn,
@@ -18,10 +18,9 @@ import {
   window,
   workspace,
 } from "vscode";
-import { extensionContext } from "./extension";
 import { Script } from "./Script";
 
-export class RunScriptProvider implements CodeLensProvider {
+export class RunScriptProviderImpl implements CodeLensProvider {
   private codeLenses: Map<string, CodeLens[]> = new Map();
   private _onDidChangeCodeLenses: EventEmitter<void> = new EventEmitter<void>();
   public readonly onDidChangeCodeLenses: Event<void> =
@@ -53,19 +52,28 @@ export class RunScriptProvider implements CodeLensProvider {
     this._onDidChangeCodeLenses.fire();
   }
 
+  clear() {
+    this.codeLenses = new Map();
+  }
+
   clearSingle(document: TextDocument) {
     this.codeLenses.set(document.uri.toString(), []);
     this._onDidChangeCodeLenses.fire();
   }
 
-  provideCodeLenses(document: TextDocument): ProviderResult<CodeLens[]> {
+  public provideCodeLenses(
+    document: TextDocument,
+    _token: CancellationToken
+  ): CodeLens[] | Thenable<CodeLens[]> {
     return this.codeLenses.get(document.uri.toString()) || [];
   }
 
-  resolveCodeLens?(codeLens: CodeLens): ProviderResult<CodeLens> {
+  public resolveCodeLens(codeLens: CodeLens, _token: CancellationToken) {
     return codeLens;
   }
 }
+
+export const RunScriptProvider = RunScriptProviderImpl;
 
 let panel: WebviewPanel | undefined;
 let scriptRunning = false;
@@ -88,11 +96,7 @@ commands.registerCommand("yaml-with-script.run", (script: Script) => {
     panel.webview.html = "";
   }
 
-  const htmlPath = path.join(
-    extensionContext.extensionPath,
-    "html",
-    "console.html"
-  );
+  const htmlPath = path.join(script.extensionPath, "html", "console.html");
   panel.webview.html = fs
     .readFileSync(htmlPath, "utf8")
     .replace(/>\s+</g, "><");
