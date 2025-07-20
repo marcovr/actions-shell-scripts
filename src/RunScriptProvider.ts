@@ -2,7 +2,7 @@ import AnsiToHtml from "ansi-to-html";
 import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
-import terminate from "terminate";
+// import terminate from "terminate";
 import {
   CancellationToken,
   CodeLens,
@@ -136,14 +136,14 @@ commands.registerCommand("yaml-with-script.run", (script: Script) => {
 
   panel.onDidDispose(() => {
     if (process.pid) {
-      terminate(process.pid);
+      // terminate(process.pid);
     }
     panel = undefined;
   });
 
   panel.webview.onDidReceiveMessage((message) => {
     if (message.command === "stopScript" && process.pid) {
-      terminate(process.pid);
+      // terminate(process.pid);
     }
   });
 

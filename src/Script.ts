@@ -1,28 +1,24 @@
 import { Position, Range, TextDocument } from "vscode";
-import yaml from "yaml";
 
 export class Script {
   public key: string;
   public document: TextDocument;
   public position: Position;
-  public path: string;
   public extensionPath: string;
   public codelensPosition: Position;
-  private index: number;
+  private content: string;
 
   constructor(
     document: TextDocument,
     position: Position,
-    index: number,
-    path: string,
+    contnet: string,
     extensionPath: string
   ) {
     this.key = document.uri.toString();
     this.document = document;
     this.position = position;
     this.codelensPosition = new Position(position.line + 1, position.character);
-    this.index = index;
-    this.path = path;
+    this.content = contnet;
     this.extensionPath = extensionPath;
   }
 
@@ -39,17 +35,8 @@ export class Script {
   }
 
   getContent() {
-    const pathParts = this.path.split(".");
-    let yamlDoc = yaml.parse(this.document.getText());
-
-    for (const part of pathParts) {
-      if (yamlDoc[part] !== undefined) {
-        yamlDoc = yamlDoc[part];
-      } else {
-        return undefined;
-      }
-    }
-
-    return yamlDoc[this.index];
+    return this.content
+      .replace(/\r\n/g, "\n") // Normalize line endings
+      .replace(/\$\{\{.*?\}\}/g, (match) => 'A'.repeat(match.length)); // Replace GH placeholders with dummy content
   }
 }

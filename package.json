@@ -52,6 +52,13 @@
         "injectTo": [
           "source.yaml"
         ]
+      },
+      {
+        "scopeName": "source.github-actions-workflow.shell-injection",
+        "path": "./syntaxes/gh-action-with-script-injection.json",
+        "injectTo": [
+          "source.github-actions-workflow"
+        ]
       }
     ],
     "configuration": {

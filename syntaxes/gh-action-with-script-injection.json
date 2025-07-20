@@ -1,6 +1,6 @@
 {
-  "scopeName": "source.yaml.shell-injection",
-  "injectionSelector": "L:source.yaml",
+  "scopeName": "source.github-actions-workflow.injection",
+  "injectionSelector": "L:source.github-actions-workflow -comment -string",
   "patterns": [
     {      
       "begin": "(?i)(?<=run: )(?:(\\|)|(>))([1-9])?([-+])?(.*\\s*)$",

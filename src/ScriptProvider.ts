@@ -8,7 +8,7 @@ import {
   window,
   workspace,
 } from "vscode";
-import { isMap, parseDocument } from "yaml";
+import { isCollection, isMap, parseDocument, Scalar, YAMLMap } from "yaml";
 import { RunScriptProvider } from "./RunScriptProvider";
 import { Script } from "./Script";
 import { ShellcheckProvider } from "./ShellcheckProvider";
@@ -61,7 +61,7 @@ export class ScriptProvider {
     } catch (error: any) {
       this.clear();
       window.showErrorMessage(
-        "Could not start extension, shellsheck not installed properly!" + error
+        "Could not start extension, shellcheck not installed properly!" + error
       );
       return;
     }
@@ -77,38 +77,80 @@ export class ScriptProvider {
     try {
       const text = document.getText();
       const yaml = parseDocument(text);
+      const dialect = config.get("dialect") as string;
 
-      if (isMap(yaml.contents)) {
-        yaml.contents.items.forEach((item) => {
-          this.searchScripts(document, item, item.key.toString());
-        });
+      if (!isMap(yaml.contents)) {
+        return;
       }
+
+      this.findWorkflowScripts(document, yaml.contents, dialect);
+      this.findCompositeActionScripts(document, yaml.contents, dialect);
     } catch (error) {
       console.error(error);
     }
   }
 
-  private searchScripts(document: TextDocument, yaml: any, path: string) {
-    if (isMap(yaml.value)) {
-      yaml.value.items.forEach((item: any) => {
-        this.searchScripts(document, item, path + "." + item.key);
-      });
+  findWorkflowScripts(document: TextDocument, map: YAMLMap, dialect: string) {
+    const jobs = map.get("jobs");
+    if (!isMap(jobs)) {
       return;
     }
 
-    const key = yaml.key;
-    if (!["before_script", "script", "after_script"].includes(key.toString())) {
+    jobs.items.forEach((job) => {
+      if (isMap(job.value)) {
+        this.findScriptSteps(document, job.value, dialect);
+      }
+    });
+  }
+
+  findCompositeActionScripts(document: TextDocument, map: YAMLMap, dialect: string) {
+    const runs = map.get("runs");
+    if (isMap(runs)) {
+      this.findScriptSteps(document, runs, dialect);
+    }
+  }
+
+  private findScriptSteps(document: TextDocument, element: YAMLMap, dialect: string) {
+    const steps = element.get("steps");
+    if (!isCollection(steps)) {
       return;
     }
 
-    const items = yaml.value.items;
-    const itemCount = items.length - 1;
+    steps.items.forEach((step) => {
+      if (!isMap(step)) {
+        return;
+      }
+
+      const run = step.get("run");
+      const shell = step.get("shell");
+      const shellIsValid = !shell || typeof shell === "string" && shell === dialect; // TODO: overwrite dialect based on shell and pass to shellcheck and runscript
+
+      if (run && typeof run === "string" && shellIsValid) {
+        this.extractScript(document, step, run);
+      }
+    });
+  }
+
+  private extractScript(document: TextDocument, step: YAMLMap, run: string) {
+    const value = step.items.find((i: any) => i.key.value === "run")!.value as Scalar;
+    let offset = value.range![0];
+    const text = document.getText();
+
+    let pos;
+    if (value.type!.startsWith("BLOCK")) {
+      offset -= text.indexOf("\n", offset) - offset + 2; // Adjust for block
+      pos = this.offsetToLineCol(text, offset);
+    } else {
+      if (value.type!.startsWith("QUOTE")) {
+        offset += 1; // Adjust for quotes
+      }
+      pos = this.offsetToLineColInline(text, offset);
+    }
 
     const script = new Script(
       document,
-      this.offsetToLineCol(document.getText(), items[itemCount].range[0]),
-      itemCount,
-      path,
+      pos,
+      run,
       this.extensionPath
     );
 
@@ -121,5 +163,12 @@ export class ScriptProvider {
     const line = lines.length;
     const col = lines[lines.length - 1].length;
     return new Position(line - 1, col - 1);
+  }
+
+  private offsetToLineColInline(yamlText: string, offset: number) {
+    const lines = yamlText.slice(0, offset).split("\n");
+    const line = lines.length;
+    const col = lines[lines.length - 1].length;
+    return new Position(line - 2, col - 1);
   }
 }
