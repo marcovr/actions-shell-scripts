@@ -1,5 +1,7 @@
 # YAML with Script
 
+See https://gitlab.com/matthiesen-technology/yaml-with-script
+
 🚀 **Extend YAML files with embedded shell scripts and linting** – the perfect
 solution for seamless automation and debugging directly within VS Code!
 
