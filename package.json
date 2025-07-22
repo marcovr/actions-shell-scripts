@@ -41,7 +41,8 @@
   },
   "activationEvents": [
     "onLanguage:yaml",
-    "onLanguage:yml"
+    "onLanguage:yml",
+    "onLanguage:github-actions-workflow"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -51,14 +52,20 @@
         "path": "./syntaxes/yaml-with-script-injection.json",
         "injectTo": [
           "source.yaml"
-        ]
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.inline.shell": "shellscript"
+        }
       },
       {
         "scopeName": "source.github-actions-workflow.shell-injection",
         "path": "./syntaxes/gh-action-with-script-injection.json",
         "injectTo": [
           "source.github-actions-workflow"
-        ]
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.inline.shell": "shellscript"
+        }
       }
     ],
     "configuration": {

@@ -1,5 +1,5 @@
 {
-  "scopeName": "source.github-actions-workflow.injection",
+  "scopeName": "source.github-actions-workflow.shell-injection",
   "injectionSelector": "L:source.github-actions-workflow -comment -string",
   "patterns": [
     {      
