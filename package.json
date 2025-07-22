@@ -134,10 +134,8 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "ansi-to-html": "^0.7.2",
     "prettier": "^3.4.2",
     "prettier-plugin-sh": "^0.14.0",
-    "terminate": "^2.8.0",
     "vscode-languageclient": "^9.0.1",
     "vscode-languageserver": "^9.0.1",
     "yaml": "^2.6.1"
