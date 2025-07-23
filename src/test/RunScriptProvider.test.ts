@@ -71,7 +71,7 @@ suite("RunScriptProvider Test Suite", () => {
     assert.ok(codeLenses);
     assert.strictEqual(codeLenses.length, 1);
     assert.deepStrictEqual(codeLenses[0].command, {
-      title: "▶️ Run YAML with Script",
+      title: "▶️ Run Script",
       command: "yaml-with-script.run",
       arguments: [mockScript],
     });
