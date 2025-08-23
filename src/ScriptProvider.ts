@@ -44,7 +44,7 @@ export class ScriptProvider {
   }
 
   analyze() {
-    const config = workspace.getConfiguration("actions-with-script");
+    const config = workspace.getConfiguration("actions-shell-scripts");
     const enabled = config.get("enabled");
 
     if (!enabled) {
@@ -53,7 +53,7 @@ export class ScriptProvider {
     }
 
     try {
-      const config = workspace.getConfiguration("actions-with-script");
+      const config = workspace.getConfiguration("actions-shell-scripts");
       const shellcheckFolder = config.get<string>("shellcheckFolder") || "";
       process.execSync(path.join(shellcheckFolder, "shellcheck --version"), {
         encoding: "utf-8",

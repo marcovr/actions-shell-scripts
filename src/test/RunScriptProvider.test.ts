@@ -72,7 +72,7 @@ suite("RunScriptProvider Test Suite", () => {
     assert.strictEqual(codeLenses.length, 1);
     assert.deepStrictEqual(codeLenses[0].command, {
       title: "▶️ Run Script",
-      command: "actions-with-script.run",
+      command: "actions-shell-scripts.run",
       arguments: [mockScript],
     });
   });

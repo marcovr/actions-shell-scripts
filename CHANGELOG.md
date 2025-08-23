@@ -1,6 +1,6 @@
 # Change Log
 
-All notable changes to the "actions-with-script" extension will be documented in
+All notable changes to the "actions-shell-scripts" extension will be documented in
 this file.
 
 ## [1.0.0] - 2025-08-24

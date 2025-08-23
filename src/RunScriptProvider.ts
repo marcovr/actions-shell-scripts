@@ -36,7 +36,7 @@ export class RunScriptProviderImpl implements CodeLensProvider {
     const codeLensRange = new Range(codeLensPos, codeLensPos);
     const codeLens = new CodeLens(codeLensRange, {
       title: "▶️ Run Script",
-      command: "actions-with-script.run",
+      command: "actions-shell-scripts.run",
       arguments: [script],
     });
 
@@ -61,7 +61,7 @@ export class RunScriptProviderImpl implements CodeLensProvider {
     document: TextDocument,
     _token: CancellationToken
   ): CodeLens[] | Thenable<CodeLens[]> {
-    const config = workspace.getConfiguration("actions-with-script");
+    const config = workspace.getConfiguration("actions-shell-scripts");
     const runButtonEnabled = config.get("runButtonEnabled");
 
     if (!runButtonEnabled) {
@@ -78,9 +78,9 @@ export class RunScriptProviderImpl implements CodeLensProvider {
 
 export const RunScriptProvider = RunScriptProviderImpl;
 
-commands.registerCommand("actions-with-script.run", (script: Script) => {
+commands.registerCommand("actions-shell-scripts.run", (script: Script) => {
   const tmpFilePath = path.join(os.tmpdir(), "_shellcheck_script.sh");
-  const config = workspace.getConfiguration("actions-with-script");
+  const config = workspace.getConfiguration("actions-shell-scripts");
   const baseScript = config.get("baseScript", "");
 
   const runScriptCommand = baseScript
@@ -89,7 +89,7 @@ commands.registerCommand("actions-with-script.run", (script: Script) => {
 
   fs.writeFileSync(tmpFilePath, runScriptCommand, "utf8");
 
-  const terminalName = "GitHub Actions Script";
+  const terminalName = "GitHub Actions Shell Script";
   const isWindows = process.platform === "win32";
   const shell = isWindows ? "wsl" : undefined;
 

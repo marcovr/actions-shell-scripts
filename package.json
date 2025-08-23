@@ -1,6 +1,6 @@
 {
-  "name": "actions-with-script",
-  "displayName": "GitHub Actions Scripts",
+  "name": "actions-shell-scripts",
+  "displayName": "GitHub Actions Shell Scripts",
   "description": "A VS Code extension designed for GitHub Actions users to analyze and execute shell scripts within YAML files. Highlight issues with ShellCheck diagnostics, run scripts directly from the editor, and streamline your CI pipeline development. Perfect for debugging and optimizing workflow files.",
   "icon": "images/icon.png",
   "version": "1.0.0",
@@ -30,12 +30,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/marcovr/actions-with-script.git"
+    "url": "https://github.com/marcovr/actions-shell-scripts.git"
   },
   "bugs": {
-    "url": "https://github.com/marcovr/actions-with-script/issues"
+    "url": "https://github.com/marcovr/actions-shell-scripts/issues"
   },
-  "homepage": "https://github.com/marcovr/actions-with-script",
+  "homepage": "https://github.com/marcovr/actions-shell-scripts",
   "galleryBanner": {
     "color": "#ff8400",
     "theme": "dark"
@@ -72,7 +72,7 @@
     "configuration": {
       "type": "object",
       "properties": {
-        "actions-with-script.severity": {
+        "actions-shell-scripts.severity": {
           "type": "string",
           "enum": [
             "error",
@@ -83,7 +83,7 @@
           "default": "warning",
           "description": "Choose one of the options to set the shellcheck severity."
         },
-        "actions-with-script.dialect": {
+        "actions-shell-scripts.dialect": {
           "type": "string",
           "enum": [
             "sh",
@@ -96,22 +96,22 @@
           "default": "bash",
           "description": "Choose one of the options to set the shellcheck dialect. Use 'inline' for a dialect within the script part (e.g. #!/bin/shell)"
         },
-        "actions-with-script.enabled": {
+        "actions-shell-scripts.enabled": {
           "type": "boolean",
           "default": true,
           "description": "Enable/disable the extension"
         },
-        "actions-with-script.runButtonEnabled": {
+        "actions-shell-scripts.runButtonEnabled": {
           "type": "boolean",
           "default": false,
           "description": "Enable/disable '▶️ Run Script' CodeLens button"
         },
-        "actions-with-script.baseScript": {
+        "actions-shell-scripts.baseScript": {
           "type": "string",
           "default": "",
           "description": "This additional script is getting sourced before executing the script from the yaml. Useful for mocking variables, defining functions and preparing the script."
         },
-        "actions-with-script.shellcheckFolder": {
+        "actions-shell-scripts.shellcheckFolder": {
           "type": "string",
           "default": "",
           "description": "This is the path to the folder that includes 'shellcheck', e.g. ('/opt/homebrew/bin' will lead to '/opt/homebrew/bin/shellcheck --version')"
