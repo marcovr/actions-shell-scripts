@@ -80,7 +80,6 @@ export const RunScriptProvider = RunScriptProviderImpl;
 
 commands.registerCommand("actions-with-script.run", (script: Script) => {
   const tmpFilePath = path.join(os.tmpdir(), "_shellcheck_script.sh");
-
   const config = workspace.getConfiguration("actions-with-script");
   const baseScript = config.get("baseScript", "");
 
@@ -90,11 +89,20 @@ commands.registerCommand("actions-with-script.run", (script: Script) => {
 
   fs.writeFileSync(tmpFilePath, runScriptCommand, "utf8");
 
-  const terminalName = "GH-actions-script";
+  const terminalName = "GitHub Actions Script";
+  const isWindows = process.platform === "win32";
+  const shell = isWindows ? "wsl" : undefined;
 
   const terminal =
     window.terminals.find((t) => t.name === terminalName) ||
-    window.createTerminal(terminalName);
+    window.createTerminal(terminalName, shell);
+
   terminal.show();
-  terminal.sendText(` bash --noprofile --norc -e -o pipefail ${tmpFilePath}`);
+
+  if (isWindows) {
+    const escapedFilePath = tmpFilePath.replace(/\\/g, "\\\\");
+    terminal.sendText(` bash --noprofile --norc -e -o pipefail "$(wslpath '${escapedFilePath}')"`);
+  } else {
+    terminal.sendText(` bash --noprofile --norc -e -o pipefail '${tmpFilePath}'`);
+  }
 });
