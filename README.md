@@ -75,6 +75,7 @@ Customize the extension via VS Code settings:
 | Setting                                | Description                                                                                                                                                                  |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `actions-with-script.enabled`          | Enable or disable the extension.                                                                                                                                             |
+| `actions-with-script.enableRunButton`  | Enable or disable the `▶️ Run Script` CodeLens button.                                                                                                                       |
 | `actions-with-script.baseScript`       | A global script to be executed before the YAML script is executed with a click on `▶️ Run Script` (e.g., `source ~/.env` or `source ~/.actions-with-script-base.sh`).        |
 | `actions-with-script.dialect`          | Specify the shell dialect for ShellCheck (`bash`, `sh`, `dash`, `zsh`, etc.).                                                                                                |
 | `actions-with-script.severity`         | Configure severity levels for ShellCheck (`error`, `warning`, `info`, `style`).                                                                                              |

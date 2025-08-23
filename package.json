@@ -101,6 +101,11 @@
           "default": "true",
           "description": "Enable/disable the extension"
         },
+        "actions-with-script.runButtonEnabled": {
+          "type": "boolean",
+          "default": "false",
+          "description": "Enable/disable '▶️ Run Script' CodeLens button"
+        },
         "actions-with-script.baseScript": {
           "type": "string",
           "default": "",

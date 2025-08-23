@@ -61,6 +61,13 @@ export class RunScriptProviderImpl implements CodeLensProvider {
     document: TextDocument,
     _token: CancellationToken
   ): CodeLens[] | Thenable<CodeLens[]> {
+    const config = workspace.getConfiguration("actions-with-script");
+    const runButtonEnabled = config.get("runButtonEnabled");
+
+    if (!runButtonEnabled) {
+      return [];
+    }
+
     return this.codeLenses.get(document.uri.toString()) || [];
   }
 
