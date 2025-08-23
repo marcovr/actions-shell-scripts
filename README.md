@@ -88,6 +88,12 @@ Customize the extension via VS Code settings:
 - **ShellCheck**: Ensure ShellCheck is installed and available in your `PATH`.
   [Install ShellCheck](https://www.shellcheck.net/).
 
+
+## Known issues
+
+* The first line of a script is not properly highlighted.
+See [here](https://github.com/harrydowning/vscode-yaml-embedded-languages/issues/11).
+
 ## License
 
 This software is released under the MIT License (see [License](LICENSE.md)).
