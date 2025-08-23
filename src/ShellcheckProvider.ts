@@ -17,15 +17,15 @@ export class ShellcheckProvider {
 
   private supportedShells = ["sh", "bash", "dash", "ksh", "busybox"];
 
-  isSupportedShell(shell: string) {
-    return this.supportedShells.includes(shell);
-  }
-
   clear() {
     this.diagnostics.clear();
   }
 
   add(script: Script) {
+    if (!this.supportedShells.includes(script.getShell())) {
+      return;
+    }
+
     const config = workspace.getConfiguration("actions-shell-scripts");
     const severity = config.get("severity");
     const shellcheckFolder = config.get("shellcheckFolder", "");

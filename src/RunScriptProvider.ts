@@ -79,7 +79,9 @@ export class RunScriptProviderImpl implements CodeLensProvider {
 export const RunScriptProvider = RunScriptProviderImpl;
 
 commands.registerCommand("actions-shell-scripts.run", (script: Script) => {
-  const tmpFilePath = path.join(os.tmpdir(), "_shellcheck_script.sh");
+  const shell = script.getShell();
+  const extension = getExtension(shell);
+  const tmpFilePath = path.join(os.tmpdir(), "_shell_script" + extension);
   const config = workspace.getConfiguration("actions-shell-scripts");
   const baseScript = config.get("baseScript", "");
 
@@ -89,20 +91,75 @@ commands.registerCommand("actions-shell-scripts.run", (script: Script) => {
 
   fs.writeFileSync(tmpFilePath, runScriptCommand, "utf8");
 
-  const terminalName = "GitHub Actions Shell Script";
-  const isWindows = process.platform === "win32";
-  const shell = isWindows ? "wsl" : undefined;
+  let fileArg = tmpFilePath;
+  let terminalShell = undefined;
+  let terminalName = "GitHub Actions Shell Script";
+
+  if (isWslNeeded(shell)) {
+    const escapedFilePath = tmpFilePath.replace(/\\/g, "\\\\");
+    fileArg = `"$(wslpath '${escapedFilePath}')"`;
+    terminalShell = "wsl";
+    terminalName += " (WSL)";
+  }
 
   const terminal =
     window.terminals.find((t) => t.name === terminalName) ||
-    window.createTerminal(terminalName, shell);
+    window.createTerminal(terminalName, terminalShell);
 
   terminal.show();
-
-  if (isWindows) {
-    const escapedFilePath = tmpFilePath.replace(/\\/g, "\\\\");
-    terminal.sendText(` bash --noprofile --norc -e -o pipefail "$(wslpath '${escapedFilePath}')"`);
-  } else {
-    terminal.sendText(` bash --noprofile --norc -e -o pipefail '${tmpFilePath}'`);
-  }
+  terminal.sendText(getCommand(shell, fileArg), true);
 });
+
+function getCommand(shell: string, file: string) {
+  switch (shell) {
+    case "sh":
+      return ` sh -e ${file}`;
+    case "bash":
+      return ` bash --noprofile --norc -e -o pipefail ${file}`;
+    case "pwsh":
+    case "powershell":
+      return ` ${shell} -NoProfile -Command ". '${file}'"`;
+    case "cmd":
+      return ` cmd /D /E:ON /V:OFF /S /C "CALL "${file}""`;
+    default:
+      return ` ${shell} ${file}`;
+  }
+}
+
+function getExtension(shell: string) {
+  switch (shell) {
+    case "sh":
+    case "bash":
+    case "dash":
+    case "ksh":
+    case "zsh":
+    case "busybox":
+      return ".sh";
+    case "pwsh":
+    case "powershell":
+      return ".ps1";
+    case "cmd":
+      return ".cmd";
+    default:
+      return "";
+  }
+}
+
+function isWslNeeded(shell: string) {
+  const isWindows = process.platform === "win32";
+  if (!isWindows) {
+    return false;
+  }
+
+  switch (shell) {
+    case "sh":
+    case "bash":
+    case "dash":
+    case "ksh":
+    case "zsh":
+    case "busybox":
+      return true;
+    default:
+      return false;
+  }
+}

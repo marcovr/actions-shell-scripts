@@ -121,16 +121,14 @@ export class ScriptProvider {
       }
 
       const run = step.get("run");
-      const shell = (step.get("shell") || "bash") as string;
-      const shellIsValid = this.shellcheckProvider.isSupportedShell(shell);
-
-      if (run && typeof run === "string" && shellIsValid) {
-        this.extractScript(document, step, run, shell);
+      if (run && typeof run === "string") {
+        this.extractScript(document, step, run);
       }
     });
   }
 
-  private extractScript(document: TextDocument, step: YAMLMap, run: string, shell: string) {
+  private extractScript(document: TextDocument, step: YAMLMap, run: string) {
+    const shell = (step.get("shell") || "bash") as string;
     const value = step.items.find((i: any) => i.key.value === "run")!.value as Scalar;
     let offset = value.range![0];
     const text = document.getText();
