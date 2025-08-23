@@ -36,7 +36,7 @@ export class RunScriptProviderImpl implements CodeLensProvider {
     const codeLensRange = new Range(codeLensPos, codeLensPos);
     const codeLens = new CodeLens(codeLensRange, {
       title: "▶️ Run Script",
-      command: "yaml-with-script.run",
+      command: "actions-with-script.run",
       arguments: [script],
     });
 
@@ -71,7 +71,7 @@ export class RunScriptProviderImpl implements CodeLensProvider {
 
 export const RunScriptProvider = RunScriptProviderImpl;
 
-commands.registerCommand("yaml-with-script.run", (script: Script) => {
+commands.registerCommand("actions-with-script.run", (script: Script) => {
   const tmpFilePath = path.join(os.tmpdir(), "_shellcheck_script.sh");
   fs.writeFileSync(tmpFilePath, script.getContent(), "utf8");
 

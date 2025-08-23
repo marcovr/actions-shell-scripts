@@ -12,7 +12,7 @@ import { Script } from "./Script";
 
 export class ShellcheckProvider {
   private diagnostics = languages.createDiagnosticCollection(
-    "yaml-with-script-diagnostics"
+    "actions-with-script-diagnostics"
   );
 
   clear() {
@@ -20,7 +20,7 @@ export class ShellcheckProvider {
   }
 
   add(script: Script) {
-    const config = workspace.getConfiguration("yaml-with-script");
+    const config = workspace.getConfiguration("actions-with-script");
     const severity = config.get("severity");
     const dialect = config.get("dialect");
     const shellcheckFolder = config.get("shellcheckFolder", "");

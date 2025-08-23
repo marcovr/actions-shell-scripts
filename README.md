@@ -1,14 +1,15 @@
-# YAML with Script
+# GitHub Actions Scripts
 
-See https://gitlab.com/matthiesen-technology/yaml-with-script
+➡️ This is a fork of [YAML with Script](https://gitlab.com/matthiesen-technology/yaml-with-script)
+adapted to work for GitHub Actions instead of GitLab CI/CD
 
 🚀 **Extend YAML files with embedded shell scripts and linting** – the perfect
 solution for seamless automation and debugging directly within VS Code!
 
-### 💡 Primary Use Case: **GitLab CI/CD**
+### 💡 Primary Use Case: **GitHub Actions**
 
-This extension is specifically designed for **GitLab CI/CD**, making it easier
-to work with `.gitlab-ci.yml` files. Automate, debug, and test your CI pipelines
+This extension is specifically designed for **GitHub Actions**, making it easier
+to work with workflow files. Automate, debug, and test your CI pipelines
 without the need for constant commits and pushes.
 
 ---
@@ -16,13 +17,13 @@ without the need for constant commits and pushes.
 ## Features
 
 - **CodeLens Integration**: Add interactive buttons to YAML files to execute
-  shell scripts (`script`) with a single click.
+  shell scripts (`run`) with a single click.
 - **ShellCheck Support**: Integrated linting to detect and fix issues in your
   shell scripts.
 - **Real-time YAML Analysis**: Provides instant feedback on YAML file syntax
   errors and warnings directly in the VS Code Problems panel.
-- **Optimized for GitLab CI/CD**: Simplifies working with `.gitlab-ci.yml`,
-  including `script` blocks, `before_script`, and more.
+- **Optimized for GitHub Actions**: Simplifies working with GitHub workflows,
+  including `run` blocks and composite actions.
 - **Customizable Settings**: Configure script dialects, severity levels, and
   other options via the extension settings.
 
@@ -30,26 +31,19 @@ without the need for constant commits and pushes.
 
 ## Example Usage
 
-This extension takes always the last item from the script array which should be
-a yaml scalar (`- |`) to take the
-[reference tags from GitLab CI/CD](https://docs.gitlab.com/ee/ci/yaml/yaml_optimization.html#reference-tags)
-into consideration.
+### GitHub Actions workflow file with a script
 
-### YAML file with a script
-
-`after_script`, `script` and `before_script` are getting highlighted, checked
+`run` blocks are getting highlighted, checked
 with [shellcheck](https://github.com/koalaman/shellcheck) and are executable
-with a button click on `Run YAML with Script`.
+with a button click on `▶️ Run Script`.
 
 ![Preview](images/preview.png)
 
 ### How to execute a script:
 
-1. Open a `.gitlab-ci.yml` file in VS Code.
-2. Click the **CodeLens button** (`▶️ Run YAML with Script`) above your script.
-3. The script is executed in an integrated WebViewPanel which will open besides
-   the active editor. You can view the output live, toggle Auto Scroll and stop
-   the script (kill the process) if you need to.
+1. Open a github workflow file in VS Code.
+2. Click the **CodeLens button** (`▶️ Run Script`) above your script.
+3. The script is executed in a new terminal.
 
 ![Preview Script](images/script-preview.png)
 
@@ -78,13 +72,13 @@ quick actions are not implemented, but might be in the future._
 
 Customize the extension via VS Code settings:
 
-| Setting                             | Description                                                                                                                                                                  |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `yaml-with-script.enabled`          | Enable or disable the extension.                                                                                                                                             |
-| `yaml-with-script.baseScript`       | A global script to be executed before the YAML script is executed with a click on `▶️ Run YAML with Script` (e.g., `source ~/.env` or `source ~/.yaml-with-script-base.sh`). |
-| `yaml-with-script.dialect`          | Specify the shell dialect for ShellCheck (`bash`, `sh`, `dash`, `zsh`, etc.).                                                                                                |
-| `yaml-with-script.severity`         | Configure severity levels for ShellCheck (`error`, `warning`, `info`, `style`).                                                                                              |
-| `yaml-with-script.shellcheckFolder` | This is the path to the folder that includes 'shellcheck', e.g. (`/opt/homebrew/bin` will lead to `/opt/homebrew/bin/shellcheck --version`)                                  |
+| Setting                                | Description                                                                                                                                                                  |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actions-with-script.enabled`          | Enable or disable the extension.                                                                                                                                             |
+| `actions-with-script.baseScript`       | A global script to be executed before the YAML script is executed with a click on `▶️ Run Script` (e.g., `source ~/.env` or `source ~/.actions-with-script-base.sh`).        |
+| `actions-with-script.dialect`          | Specify the shell dialect for ShellCheck (`bash`, `sh`, `dash`, `zsh`, etc.).                                                                                                |
+| `actions-with-script.severity`         | Configure severity levels for ShellCheck (`error`, `warning`, `info`, `style`).                                                                                              |
+| `actions-with-script.shellcheckFolder` | This is the path to the folder that includes 'shellcheck', e.g. (`/opt/homebrew/bin` will lead to `/opt/homebrew/bin/shellcheck --version`)                                  |
 
 ---
 

@@ -1,9 +1,9 @@
 {
-  "name": "yaml-with-script",
-  "displayName": "YAML with Script",
-  "description": "A VS Code extension designed for GitLab CI users to analyze and execute shell scripts within YAML files. Highlight issues with ShellCheck diagnostics, run scripts directly from the editor, and streamline your CI pipeline development. Perfect for debugging and optimizing `.gitlab-ci.yml` files.",
+  "name": "actions-with-script",
+  "displayName": "GitHub Actions Scripts",
+  "description": "A VS Code extension designed for GitHub Actions users to analyze and execute shell scripts within YAML files. Highlight issues with ShellCheck diagnostics, run scripts directly from the editor, and streamline your CI pipeline development. Perfect for debugging and optimizing workflow files.",
   "icon": "images/icon.png",
-  "version": "1.1.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -17,10 +17,11 @@
     "Debuggers",
     "Other"
   ],
-  "publisher": "matthiesen-technology",
+  "publisher": "marcovr",
   "keywords": [
     "yaml",
-    "gitlab-ci",
+    "github",
+    "actions",
     "shellcheck",
     "scripts",
     "ci/cd",
@@ -29,12 +30,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/matthiesen-technology/yaml-with-script.git"
+    "url": "https://github.com/marcovr/actions-with-script.git"
   },
   "bugs": {
-    "url": "https://gitlab.com/matthiesen-technology/yaml-with-script/-/issues"
+    "url": "https://github.com/marcovr/actions-with-script/issues"
   },
-  "homepage": "https://gitlab.com/matthiesen-technology/yaml-with-script",
+  "homepage": "https://github.com/marcovr/actions-with-script",
   "galleryBanner": {
     "color": "#ff8400",
     "theme": "dark"
@@ -71,7 +72,7 @@
     "configuration": {
       "type": "object",
       "properties": {
-        "yaml-with-script.severity": {
+        "actions-with-script.severity": {
           "type": "string",
           "enum": [
             "error",
@@ -82,7 +83,7 @@
           "default": "warning",
           "description": "Choose one of the options to set the shellcheck severity."
         },
-        "yaml-with-script.dialect": {
+        "actions-with-script.dialect": {
           "type": "string",
           "enum": [
             "sh",
@@ -95,17 +96,17 @@
           "default": "bash",
           "description": "Choose one of the options to set the shellcheck dialect. Use 'inline' for a dialect within the script part (e.g. #!/bin/shell)"
         },
-        "yaml-with-script.enabled": {
+        "actions-with-script.enabled": {
           "type": "boolean",
           "default": "true",
-          "description": "Enable/disable scripts in YAML"
+          "description": "Enable/disable the extension"
         },
-        "yaml-with-script.baseScript": {
+        "actions-with-script.baseScript": {
           "type": "string",
           "default": "",
           "description": "This additional script is getting sourced before executing the script from the yaml. Useful for mocking variables, defining functions and preparing the script."
         },
-        "yaml-with-script.shellcheckFolder": {
+        "actions-with-script.shellcheckFolder": {
           "type": "string",
           "default": "",
           "description": "This is the path to the folder that includes 'shellcheck', e.g. ('/opt/homebrew/bin' will lead to '/opt/homebrew/bin/shellcheck --version')"
