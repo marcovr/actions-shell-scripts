@@ -73,7 +73,15 @@ export const RunScriptProvider = RunScriptProviderImpl;
 
 commands.registerCommand("actions-with-script.run", (script: Script) => {
   const tmpFilePath = path.join(os.tmpdir(), "_shellcheck_script.sh");
-  fs.writeFileSync(tmpFilePath, script.getContent(), "utf8");
+
+  const config = workspace.getConfiguration("actions-with-script");
+  const baseScript = config.get("baseScript", "");
+
+  const runScriptCommand = baseScript
+    ? `source ${baseScript};\n${script.getContent()}`
+    : script.getContent();
+
+  fs.writeFileSync(tmpFilePath, runScriptCommand, "utf8");
 
   const terminalName = "GH-actions-script";
 
