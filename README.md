@@ -24,8 +24,8 @@ without the need for constant commits and pushes.
   errors and warnings directly in the VS Code Problems panel.
 - **Optimized for GitHub Actions**: Simplifies working with GitHub workflows,
   including `run` blocks and composite actions.
-- **Customizable Settings**: Configure script dialects, severity levels, and
-  other options via the extension settings.
+- **Customizable Settings**: Configure severity levels, and other options via
+  the extension settings.
 
 ---
 
@@ -77,7 +77,6 @@ Customize the extension via VS Code settings:
 | `actions-shell-scripts.enabled`          | Enable or disable the extension.                                                                                                                                             |
 | `actions-shell-scripts.enableRunButton`  | Enable or disable the `▶️ Run Script` CodeLens button.                                                                                                                       |
 | `actions-shell-scripts.baseScript`       | A global script to be executed before the YAML script is executed with a click on `▶️ Run Script` (e.g., `source ~/.env` or `source ~/.actions-shell-scripts-base.sh`).        |
-| `actions-shell-scripts.dialect`          | Specify the shell dialect for ShellCheck (`bash`, `sh`, `dash`, `zsh`, etc.).                                                                                                |
 | `actions-shell-scripts.severity`         | Configure severity levels for ShellCheck (`error`, `warning`, `info`, `style`).                                                                                              |
 | `actions-shell-scripts.shellcheckFolder` | This is the path to the folder that includes 'shellcheck', e.g. (`/opt/homebrew/bin` will lead to `/opt/homebrew/bin/shellcheck --version`)                                  |
 

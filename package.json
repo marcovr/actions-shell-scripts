@@ -83,19 +83,6 @@
           "default": "warning",
           "description": "Choose one of the options to set the shellcheck severity."
         },
-        "actions-shell-scripts.dialect": {
-          "type": "string",
-          "enum": [
-            "sh",
-            "bash",
-            "dash",
-            "ksh",
-            "busybox",
-            "inline"
-          ],
-          "default": "bash",
-          "description": "Choose one of the options to set the shellcheck dialect. Use 'inline' for a dialect within the script part (e.g. #!/bin/shell)"
-        },
         "actions-shell-scripts.enabled": {
           "type": "boolean",
           "default": true,

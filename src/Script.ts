@@ -7,12 +7,14 @@ export class Script {
   public extensionPath: string;
   public codelensPosition: Position;
   private content: string;
+  private shell: string;
 
   constructor(
     document: TextDocument,
     position: Position,
     contnet: string,
-    extensionPath: string
+    extensionPath: string,
+    shell: string
   ) {
     this.key = document.uri.toString();
     this.document = document;
@@ -20,6 +22,7 @@ export class Script {
     this.codelensPosition = new Position(position.line + 1, position.character);
     this.content = contnet;
     this.extensionPath = extensionPath;
+    this.shell = shell;
   }
 
   getRangeToPosition(
@@ -32,6 +35,10 @@ export class Script {
       this.position.translate(lineStart, columnStart),
       this.position.translate(lineEnd, columnEnd)
     );
+  }
+
+  getShell() {
+    return this.shell;
   }
 
   getContent() {

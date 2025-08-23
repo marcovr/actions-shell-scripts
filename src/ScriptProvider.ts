@@ -77,20 +77,19 @@ export class ScriptProvider {
     try {
       const text = document.getText();
       const yaml = parseDocument(text);
-      const dialect = config.get("dialect") as string;
 
       if (!isMap(yaml.contents)) {
         return;
       }
 
-      this.findWorkflowScripts(document, yaml.contents, dialect);
-      this.findCompositeActionScripts(document, yaml.contents, dialect);
+      this.findWorkflowScripts(document, yaml.contents);
+      this.findCompositeActionScripts(document, yaml.contents);
     } catch (error) {
       console.error(error);
     }
   }
 
-  findWorkflowScripts(document: TextDocument, map: YAMLMap, dialect: string) {
+  findWorkflowScripts(document: TextDocument, map: YAMLMap) {
     const jobs = map.get("jobs");
     if (!isMap(jobs)) {
       return;
@@ -98,19 +97,19 @@ export class ScriptProvider {
 
     jobs.items.forEach((job) => {
       if (isMap(job.value)) {
-        this.findScriptSteps(document, job.value, dialect);
+        this.findScriptSteps(document, job.value);
       }
     });
   }
 
-  findCompositeActionScripts(document: TextDocument, map: YAMLMap, dialect: string) {
+  findCompositeActionScripts(document: TextDocument, map: YAMLMap) {
     const runs = map.get("runs");
     if (isMap(runs)) {
-      this.findScriptSteps(document, runs, dialect);
+      this.findScriptSteps(document, runs);
     }
   }
 
-  private findScriptSteps(document: TextDocument, element: YAMLMap, dialect: string) {
+  private findScriptSteps(document: TextDocument, element: YAMLMap) {
     const steps = element.get("steps");
     if (!isCollection(steps)) {
       return;
@@ -122,16 +121,16 @@ export class ScriptProvider {
       }
 
       const run = step.get("run");
-      const shell = step.get("shell");
-      const shellIsValid = !shell || typeof shell === "string" && shell === dialect; // TODO: overwrite dialect based on shell and pass to shellcheck and runscript
+      const shell = (step.get("shell") || "bash") as string;
+      const shellIsValid = this.shellcheckProvider.isSupportedShell(shell);
 
       if (run && typeof run === "string" && shellIsValid) {
-        this.extractScript(document, step, run);
+        this.extractScript(document, step, run, shell);
       }
     });
   }
 
-  private extractScript(document: TextDocument, step: YAMLMap, run: string) {
+  private extractScript(document: TextDocument, step: YAMLMap, run: string, shell: string) {
     const value = step.items.find((i: any) => i.key.value === "run")!.value as Scalar;
     let offset = value.range![0];
     const text = document.getText();
@@ -151,7 +150,8 @@ export class ScriptProvider {
       document,
       pos,
       run,
-      this.extensionPath
+      this.extensionPath,
+      shell
     );
 
     this.runScriptProvider.add(script);

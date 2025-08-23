@@ -15,6 +15,12 @@ export class ShellcheckProvider {
     "actions-shell-scripts-diagnostics"
   );
 
+  private supportedShells = ["sh", "bash", "dash", "ksh", "busybox"];
+
+  isSupportedShell(shell: string) {
+    return this.supportedShells.includes(shell);
+  }
+
   clear() {
     this.diagnostics.clear();
   }
@@ -22,18 +28,15 @@ export class ShellcheckProvider {
   add(script: Script) {
     const config = workspace.getConfiguration("actions-shell-scripts");
     const severity = config.get("severity");
-    const dialect = config.get("dialect");
     const shellcheckFolder = config.get("shellcheckFolder", "");
     const shellcheckPath = path.join(shellcheckFolder, "shellcheck");
 
     const args = [
       "--format=json",
       `--severity=${severity}`,
+      `--shell=${script.getShell()}`,
+      "-"
     ];
-    if (dialect !== "inline") {
-      args.push(`--shell=${dialect}`);
-    }
-    args.push("-");
 
     const result = process.spawnSync(shellcheckPath, args, {
       input: script.getContent(),
