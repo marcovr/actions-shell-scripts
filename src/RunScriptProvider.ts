@@ -110,6 +110,7 @@ commands.registerCommand("actions-shell-scripts.run", (script: Script) => {
   terminal.sendText(getCommand(shell, fileArg), true);
 });
 
+// See https://docs.github.com/de/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idstepsshell
 function getCommand(shell: string, file: string) {
   switch (shell) {
     case "sh":
