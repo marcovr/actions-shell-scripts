@@ -3,7 +3,7 @@
   "displayName": "GitHub Actions Shell Scripts",
   "description": "A VS Code extension designed for GitHub Actions users to analyze and execute shell scripts within YAML files. Highlight issues with ShellCheck diagnostics, run scripts directly from the editor, and streamline your CI pipeline development. Perfect for debugging and optimizing workflow files.",
   "icon": "images/icon.png",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.96.0"
   },
@@ -33,7 +33,7 @@
   },
   "homepage": "https://github.com/marcovr/actions-shell-scripts",
   "galleryBanner": {
-    "color": "#ff8400",
+    "color": "#006DC1",
     "theme": "dark"
   },
   "activationEvents": [
