@@ -8,21 +8,43 @@ import {
   Uri,
   workspace,
 } from "vscode";
-import { Script } from "./Script";
+import { GhExpressionRange, Script } from "./Script";
+
+// Shellcheck codes which don't play nice with GitHub Actions expressions
+// See: https://github.com/marcovr/actions-shell-scripts/issues/2
+const GH_EXPRESSION_FALSE_POSITIVES = new Set(["SC2050", "SC2078", "SC2193"]);
+
+const SUPPORTED_SHELLS = new Set(["sh", "bash", "dash", "ksh", "busybox"]);
+
+interface ShellCheckIssue {
+  file: string,
+  line: number;
+  endLine: number;
+  column: number;
+  endColumn: number;
+  level: "error" | "warning" | "info" | "style";
+  code: number;
+  message: string;
+}
+
+export function rangesOverlap(a: GhExpressionRange, b: GhExpressionRange) {
+  // Only compare lines, not columns as for shellcheck likes to mark the ==
+  const before = (x: GhExpressionRange, y: GhExpressionRange) => x.endLine < y.line;
+
+  return !before(a, b) && !before(b, a);
+}
 
 export class ShellcheckProvider {
   private diagnostics = languages.createDiagnosticCollection(
     "actions-shell-scripts-diagnostics"
   );
 
-  private supportedShells = ["sh", "bash", "dash", "ksh", "busybox"];
-
   clear() {
     this.diagnostics.clear();
   }
 
   add(script: Script) {
-    if (!this.supportedShells.includes(script.getShell())) {
+    if (!SUPPORTED_SHELLS.has(script.getShell())) {
       return;
     }
 
@@ -48,9 +70,19 @@ export class ShellcheckProvider {
     }
 
     const output = result.stdout;
-    const issues = JSON.parse(output);
+    const issues: ShellCheckIssue[] = JSON.parse(output);
+    const avoidFalsePositives = config.get("avoidFalsePositives");
+    const ghExpressionRanges = avoidFalsePositives ? script.getGhExpressionRanges() : [];
 
-    issues.forEach((issue: any) => {
+    issues.forEach((issue: ShellCheckIssue) => {
+      const code = `SC${issue.code}`;
+      if (avoidFalsePositives
+        && GH_EXPRESSION_FALSE_POSITIVES.has(code)
+        && ghExpressionRanges.some((range) => rangesOverlap(range, issue))) {
+        // Ignore shellcheck false positives
+        return;
+      }
+
       let severity;
       switch (issue.level) {
         case "error":
@@ -78,8 +110,8 @@ export class ShellcheckProvider {
 
       diagnostic.source = "shellcheck";
       diagnostic.code = {
-        value: `SC${issue.code}`,
-        target: Uri.parse(`https://www.shellcheck.net/wiki/SC${issue.code}`),
+        value: code,
+        target: Uri.parse(`https://www.shellcheck.net/wiki/${code}`),
       };
 
       if (this.diagnostics.has(script.document.uri)) {

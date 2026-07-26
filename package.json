@@ -98,6 +98,11 @@
           "type": "string",
           "default": "",
           "description": "This is the path to the folder that includes 'shellcheck', e.g. ('/opt/homebrew/bin' will lead to '/opt/homebrew/bin/shellcheck --version')"
+        },
+        "actions-shell-scripts.avoidFalsePositives": {
+          "type": "boolean",
+          "default": true,
+          "description": "Avoid shellcheck false positives (SC2050, SC2078, SC2193) with GitHub expressions"
         }
       }
     }

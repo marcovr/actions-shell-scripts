@@ -72,13 +72,14 @@ quick actions are not implemented, but might be in the future._
 
 Customize the extension via VS Code settings:
 
-| Setting                                | Description                                                                                                                                                                  |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `actions-shell-scripts.enabled`          | Enable or disable the extension.                                                                                                                                             |
-| `actions-shell-scripts.enableRunButton`  | Enable or disable the `▶️ Run Script` CodeLens button.                                                                                                                       |
-| `actions-shell-scripts.baseScript`       | A global script to be executed before the YAML script is executed with a click on `▶️ Run Script` (e.g., `source ~/.env` or `source ~/.actions-shell-scripts-base.sh`).        |
-| `actions-shell-scripts.severity`         | Configure severity levels for ShellCheck (`error`, `warning`, `info`, `style`).                                                                                              |
-| `actions-shell-scripts.shellcheckFolder` | This is the path to the folder that includes 'shellcheck', e.g. (`/opt/homebrew/bin` will lead to `/opt/homebrew/bin/shellcheck --version`)                                  |
+| Setting                                     | Description                                                                                                                                                                  |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actions-shell-scripts.enabled`             | Enable or disable the extension.                                                                                                                                             |
+| `actions-shell-scripts.enableRunButton`     | Enable or disable the `▶️ Run Script` CodeLens button.                                                                                                                       |
+| `actions-shell-scripts.baseScript`          | A global script to be executed before the YAML script is executed with a click on `▶️ Run Script` (e.g., `source ~/.env` or `source ~/.actions-shell-scripts-base.sh`).      |
+| `actions-shell-scripts.severity`            | Configure severity levels for ShellCheck (`error`, `warning`, `info`, `style`).                                                                                              |
+| `actions-shell-scripts.shellcheckFolder`    | This is the path to the folder that includes 'shellcheck', e.g. (`/opt/homebrew/bin` will lead to `/opt/homebrew/bin/shellcheck --version`)                                  |
+| `actions-shell-scripts.avoidFalsePositives` | Avoid shellcheck false positives (SC2050, SC2078, SC2193) with GitHub expressions                                                                                            |
 
 ---
 
