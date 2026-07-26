@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import { Position, Range, TextDocument, window } from "vscode";
+import { Position, Range, TextDocument, window, workspace } from "vscode";
 import { CancellationToken } from "vscode-languageclient";
 import { RunScriptProviderImpl } from "../RunScriptProvider";
 import { Script } from "../Script";
@@ -45,13 +45,27 @@ suite("RunScriptProvider Test Suite", () => {
   let provider: RunScriptProviderImpl;
   let mockDocument: TextDocument;
 
-  setup(() => {
-    provider = new RunScriptProviderImpl();
-    mockDocument = new MockTextDocument();
+  const originalGetConfiguration = workspace.getConfiguration;
+
+  suiteSetup(() => {
+    // Let's pretend that runButtonEnabled is always true
+    (workspace as any).getConfiguration = (section?: string) => {
+      const config = originalGetConfiguration(section);
+      return {
+        get: (key: string, defaultValue?: unknown) =>
+          key === "runButtonEnabled" ? true : config.get(key, defaultValue),
+      };
+    };
   });
 
   suiteTeardown(() => {
+    (workspace as any).getConfiguration = originalGetConfiguration;
     window.showInformationMessage("RunScriptProvider tests done!");
+  });
+
+  setup(() => {
+    provider = new RunScriptProviderImpl();
+    mockDocument = new MockTextDocument();
   });
 
   test("should add a new CodeLens for a script", async () => {
