@@ -118,21 +118,18 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
+    "@types/node": "24.x",
     "@types/vscode": "^1.96.0",
     "@typescript-eslint/eslint-plugin": "^8.17.0",
     "@typescript-eslint/parser": "^8.17.0",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
-    "esbuild": "^0.25.9",
-    "eslint": "^9.16.0",
-    "typescript": "^5.7.2"
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0",
+    "esbuild": "^0.28.1",
+    "eslint": "^10.7.0",
+    "typescript": "^6.0.3",
+    "vscode-languageclient": "^10.1.0"
   },
   "dependencies": {
-    "prettier": "^3.4.2",
-    "prettier-plugin-sh": "^0.14.0",
-    "vscode-languageclient": "^9.0.1",
-    "vscode-languageserver": "^9.0.1",
     "yaml": "^2.6.1"
   }
 }

@@ -6,6 +6,7 @@ import { Script } from "../Script";
 
 // Mock für das TextDocument
 class MockTextDocument implements TextDocument {
+  encoding = "utf-8";
   uri = { toString: () => "test-document" } as any;
   fileName = "";
   isUntitled = false;
