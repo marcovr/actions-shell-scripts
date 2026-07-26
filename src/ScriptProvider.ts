@@ -75,21 +75,22 @@ export class ScriptProvider {
     this.clear();
 
     try {
-      const text = document.getText();
+      // Normalize to LF to avoid misplaced diagnostics
+      const text = document.getText().replace(/\r\n/g, "\n");
       const yaml = parseDocument(text);
 
       if (!isMap(yaml.contents)) {
         return;
       }
 
-      this.findWorkflowScripts(document, yaml.contents);
-      this.findCompositeActionScripts(document, yaml.contents);
+      this.findWorkflowScripts(document, text, yaml.contents);
+      this.findCompositeActionScripts(document, text, yaml.contents);
     } catch (error) {
       console.error(error);
     }
   }
 
-  findWorkflowScripts(document: TextDocument, map: YAMLMap) {
+  findWorkflowScripts(document: TextDocument, text: string, map: YAMLMap) {
     const jobs = map.get("jobs");
     if (!isMap(jobs)) {
       return;
@@ -97,19 +98,19 @@ export class ScriptProvider {
 
     jobs.items.forEach((job) => {
       if (isMap(job.value)) {
-        this.findScriptSteps(document, job.value);
+        this.findScriptSteps(document, text, job.value);
       }
     });
   }
 
-  findCompositeActionScripts(document: TextDocument, map: YAMLMap) {
+  findCompositeActionScripts(document: TextDocument, text: string, map: YAMLMap) {
     const runs = map.get("runs");
     if (isMap(runs)) {
-      this.findScriptSteps(document, runs);
+      this.findScriptSteps(document, text, runs);
     }
   }
 
-  private findScriptSteps(document: TextDocument, element: YAMLMap) {
+  private findScriptSteps(document: TextDocument, text: string, element: YAMLMap) {
     const steps = element.get("steps");
     if (!isCollection(steps)) {
       return;
@@ -122,16 +123,15 @@ export class ScriptProvider {
 
       const run = step.get("run");
       if (run && typeof run === "string") {
-        this.extractScript(document, step, run);
+        this.extractScript(document, text, step, run);
       }
     });
   }
 
-  private extractScript(document: TextDocument, step: YAMLMap, run: string) {
+  private extractScript(document: TextDocument, text: string, step: YAMLMap, run: string) {
     const shell = (step.get("shell") || "bash") as string;
     const value = step.items.find((i: any) => i.key.value === "run")!.value as Scalar;
     let offset = value.range![0];
-    const text = document.getText();
 
     let pos;
     if (value.type!.startsWith("BLOCK")) {
